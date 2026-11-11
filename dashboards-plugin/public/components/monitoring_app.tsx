@@ -10,6 +10,7 @@ import { entityId, entityName, historyKind, navigationHash, parseNavigation, Nav
 import { EntityTable } from './entity_table';
 import { DetailStats, MetricPanels, StatsStrip } from './metric_panels';
 import { PipelineDetail } from './pipeline_detail';
+import { NodeDetail } from './node_detail';
 
 const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines' };
 
@@ -133,15 +134,21 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
           <EuiSpacer size="m" />
           {nav.entity ? <>
             {!selected && !loading && <EuiCallOut title="Kein aktueller Messwert für diesen Eintrag" color="warning"><p>Der Eintrag ist im aktuellen Sample nicht vorhanden. Der Verlauf im gewählten Zeitraum bleibt abrufbar.</p></EuiCallOut>}
+            {selected?.kind === 'node' ? <NodeDetail key={selected.node_id} node={selected} allocation={data!.allocationNode} indexMetrics={data!.indices}
+              onIndex={index => navigate({ section: 'opensearch', view: 'indices', entity: index.index_uuid, label: index.index_name })}>
+              <DetailStats metric={selected} /><EuiSpacer />
+              {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind="node" advanced={advanced} />}
+              <EuiSpacer /><EuiPanel paddingSize="m"><EuiText size="s"><p>
+                JVM Heap: {bytes(selected.heap_used_bytes)} / {bytes(selected.heap_max_bytes)} ·
+                Dateisystem frei: {bytes(selected.disk_available_bytes)} / {bytes(selected.disk_total_bytes)} ·
+                GC-Zeit seit Start: {number(selected.gc_time_ms, ' ms')} · Ablehnungen: {number(selected.rejected_total)}
+              </p></EuiText></EuiPanel>
+            </NodeDetail> : <>
             {selected && <DetailStats metric={selected} />}
             <EuiSpacer />
             {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind={kind} source={selected?.pipeline_source || (logstash ? 'logstash' : 'ingest')} advanced={advanced} />}
             {selected?.kind === 'pipeline' && <><EuiSpacer /><PipelineDetail metric={selected} /></>}
-            {selected?.kind === 'node' && <><EuiSpacer /><EuiPanel paddingSize="m"><EuiText size="s"><p>
-              JVM Heap: {bytes(selected.heap_used_bytes)} / {bytes(selected.heap_max_bytes)} ·
-              Dateisystem frei: {bytes(selected.disk_available_bytes)} / {bytes(selected.disk_total_bytes)} ·
-              GC-Zeit seit Start: {number(selected.gc_time_ms, ' ms')} · Ablehnungen: {number(selected.rejected_total)}
-            </p></EuiText></EuiPanel></>}
+            </>}
           </> : nav.view === 'overview' ? <>
             <StatsStrip values={logstash ? [
               ['Nodes', number(nodes.length)], ['Pipelines', number(pipelines.length)],

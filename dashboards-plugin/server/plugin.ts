@@ -33,15 +33,24 @@ export class StackMonitoringServerPlugin implements Plugin {
       try {
         const latestResult = await search({ size: 1, sort: [{ timestamp: 'desc' }], query: { term: { kind: 'cluster' } } });
         const latest = latestResult.hits.hits[0]?._source as Metric | undefined;
-        if (!latest) return response.ok({ body: { latest: null, nodes: [], indices: [], pipelines: [], logstashNodes: [], series: [], intervalMs: 10000, serverTime: now } });
+        if (!latest) return response.ok({ body: { latest: null, nodes: [], indices: [], pipelines: [], logstashNodes: [], allocationNode: null, series: [], intervalMs: 10000, serverTime: now } });
         const sampleQuery = (sampleKind: MetricKind) => ({
+          _source: { excludes: ['allocations'] },
           size: sampleKind === 'index' || sampleKind === 'pipeline' ? 10000 : 1000,
           query: { bool: { filter: [{ term: { kind: sampleKind } }, { term: { timestamp: latest.timestamp } }, { term: { cluster_uuid: latest.cluster_uuid } }] } },
         });
-        const [nodes, indices, pipelines, logstashNodes, history] = await Promise.all([
+        const [nodes, indices, pipelines, logstashNodes, history, allocation] = await Promise.all([
           search(sampleQuery('node')), search(sampleQuery('index')),
           search(sampleQuery('pipeline')), search(sampleQuery('logstash')),
           search(historyQuery(minutes, kind, entity, now, latest.interval_ms, latest.cluster_uuid)),
+          kind === 'node' && entity ? search({
+            size: 1,
+            _source: ['timestamp', 'kind', 'cluster_uuid', 'cluster_name', 'node_id', 'allocation_*', 'allocations'],
+            query: { bool: { filter: [
+              { term: { kind: 'node' } }, { term: { node_id: entity } },
+              { term: { timestamp: latest.timestamp } }, { term: { cluster_uuid: latest.cluster_uuid } },
+            ] } },
+          }) : Promise.resolve(null),
         ]);
         const buckets = history.aggregations?.timeline?.buckets || [];
         const series: SeriesPoint[] = buckets.map((bucket) => ({
@@ -53,6 +62,7 @@ export class StackMonitoringServerPlugin implements Plugin {
           latest, nodes: nodes.hits.hits.map(hit => hit._source as Metric),
           indices: indices.hits.hits.map(hit => hit._source as Metric), series,
           pipelines: pipelines.hits.hits.map(hit => hit._source), logstashNodes: logstashNodes.hits.hits.map(hit => hit._source),
+          allocationNode: allocation?.hits.hits[0]?._source || null,
           intervalMs: latest.interval_ms || 10000, serverTime: now,
         };
         return response.ok({ body: overview });

@@ -109,3 +109,29 @@ JVM-Neustarts und Pipeline-Epochenwechsel verwerfen die vorherige Ratenbasis.
 Die Pipeline-Ansicht zeigt die gemeldeten Stufen. Die Stats-API liefert keinen
 vollstaendigen Graphen mit Bedingungen; die Oberflaeche erfindet keine Verbindungen.
 Detailseiten verwenden URL-Hashes und unterstuetzen Browser-Zurueck und Direktlinks.
+
+## Shards und Indizes eines Nodes (ab 0.4.0)
+
+Node-Dokumente enthalten einen Routing-Snapshot in `allocations` (nicht separat
+indiziert). Quelle ist der lokale ClusterState des gewaehlten Cluster-Managers.
+Erfasst werden alle dem Node zugeordneten Kopien einschliesslich System- und
+Monitoring-Indizes. Nicht zugewiesene Shards werden keinem Node zugerechnet.
+Bei Relocation erscheinen Quelle und initialisierendes Ziel jeweils auf ihrem
+eigenen Node. Primary/Replica bezeichnet die Kopienrolle, nicht den Clusterstatus.
+
+Shard-Stats werden ueber Index-UUID, Shard-ID, Node-ID und Allocation-ID zugeordnet.
+Bei zwischenzeitlich verschobenen Kopien oder nicht abgefragten Monitoring-Indizes
+bleiben Dokumente/Daten leer. Indexsummen in der Node-Ansicht entstehen nur aus
+lokalen Kopien; bei fehlenden Stats wird keine unvollstaendige Summe als vollstaendig
+ausgegeben. Sie sind nicht mit den primaeren Cluster-/Indexwerten gleichzusetzen.
+
+Pro Node sind maximal 10.000 Detailzeilen gespeichert. Gesamtzaehler fuer Indizes,
+Primary und Replica enthalten weiterhin alle zugewiesenen Kopien. Bei Begrenzung
+zeigt die UI einen Hinweis; Tabellen und Zustandszaehler betreffen dann nur die
+erfassten Zeilen. Der API-Uebersichtspayload schliesst `allocations` aus.
+Nur fuer einen ausgewaehlten Node wird dessen Snapshot zum exakt gleichen
+Cluster-UUID/Zeitstempel ueber `asCurrentUser` geladen (`allocationNode`).
+Alte Messungen ohne dieses Feld bleiben lesbar und werden nicht mit null Shards
+verwechselt. Der Zeitraum beeinflusst die Diagramme; Routing-Tabellen zeigen den
+angegebenen aktuellen Sample-Zeitpunkt. Paginierung und Filter bleiben bei
+automatischer Aktualisierung erhalten; eine neue Suchanfrage beginnt auf Seite 1.

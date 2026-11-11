@@ -1,17 +1,20 @@
 # Native Auslieferung auf 3.6.0
 
-Ziel: 192.168.178.40, OpenSearch und OpenSearch Dashboards 3.6.0, Pluginversion 0.3.0.
+Ziel: 192.168.178.40, OpenSearch und OpenSearch Dashboards 3.6.0, Pluginversion 0.4.0.
 Installation ohne Container.
 
 Artefakte auf dem Server:
 
-- /opt/opensearch-self-monitoring/releases/0.3.0/stack-monitoring-0.3.0.zip
-- /opt/opensearch-self-monitoring/releases/0.3.0/stackMonitoring-3.6.0.zip
+- /opt/opensearch-self-monitoring/releases/0.4.0/stack-monitoring-0.4.0.zip
+- /opt/opensearch-self-monitoring/releases/0.4.0/stackMonitoring-3.6.0.zip
+
+0.4.0 ergaenzt lokale Index- und Shardtabellen in jeder OpenSearch-Node-Ansicht.
+Neue Node-Felder werden additiv im vorhandenen Metrikmapping ergaenzt.
+Die vorherigen 0.3.0-ZIPs bleiben fuer einen Plugin-Rollback erhalten.
 
 0.3.0 ergaenzt Produktnavigation, Detailseiten, Ingest- und lokale Logstash-
 Pipelines. Das heutige Metrikmapping wird additiv erweitert; bestehende
-Monitoring-Dokumente bleiben erhalten. Die vorherigen 0.2.0-ZIPs liegen im
-benachbarten Releaseverzeichnis und bleiben fuer einen Plugin-Rollback erhalten.
+Monitoring-Dokumente bleiben erhalten.
 
 Die alten Plugins wurden bei gestoppten Diensten entfernt und die neu gebauten
 3.6-Plugins mit den offiziellen Installern installiert. Dashboards bleibt im

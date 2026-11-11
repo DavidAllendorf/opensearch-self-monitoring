@@ -95,8 +95,11 @@ final class MetricsCollector extends AbstractLifecycleComponent {
             throw new IllegalStateException("Partial stats response; refusing to record misleading totals");
         }
         List<Map<String, Object>> documents = new ArrayList<>();
+        var shardStats = NodeAllocations.statsByAllocation(indices.getShards());
         for (var node : nodes.getNodes()) {
-            documents.add(MetricDocuments.node(node, now, clusterId, clusterName));
+            var document = MetricDocuments.node(node, now, clusterId, clusterName);
+            NodeAllocations.add(document, state, shardStats);
+            documents.add(document);
             documents.addAll(PipelineDocuments.ingest(node, now, clusterId, clusterName));
         }
         int maxIndices = MonitoringSettings.MAX_INDICES.get(settings);

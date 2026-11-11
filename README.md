@@ -18,6 +18,8 @@ benoetigt. Eigenstaendige Implementierung unter Apache-2.0.
 - Ingest-Pipeline- und Prozessorstatistiken pro OpenSearch-Node.
 - Automatische Erkennung des lokalen Logstash: Event-Durchsatz, JVM, CPU,
   Pipeline-Worker, Queues und Inputs/Filter/Outputs.
+- Node-Details mit lokalen Indizes und Shard-Kopien: Shard-ID, Primary/Replica,
+  Routing-Zustand, Verschiebungsquelle/-ziel sowie lokale Dokumente und Daten.
 
 Die Oberflaeche wird unter **Stack Monitoring** registriert, auch in der neuen
 Navigation unter **Data administration**. Direkter Pfad: `/app/stackMonitoring`.

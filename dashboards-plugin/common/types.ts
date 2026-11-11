@@ -10,6 +10,20 @@ export interface ProcessorMetric {
   failed?: number;
 }
 
+export interface ShardAllocation {
+  index_name: string;
+  index_uuid: string;
+  shard_id: number;
+  primary: boolean;
+  state: string;
+  allocation_id: string;
+  relocation_target: boolean;
+  relocating_node_id?: string;
+  relocating_node_name?: string;
+  docs?: number;
+  store_bytes?: number;
+}
+
 /** Values missing after a restart or partial sampling are deliberately nullable. */
 export interface Metric {
   timestamp: number;
@@ -66,6 +80,12 @@ export interface Metric {
   queue_bytes?: number;
   queue_type?: string;
   processors?: ProcessorMetric[];
+  allocation_shards?: number;
+  allocation_primaries?: number;
+  allocation_replicas?: number;
+  allocation_indices?: number;
+  allocation_sampled_shards?: number;
+  allocations?: ShardAllocation[];
 }
 
 export const HISTORY_FIELDS = [
@@ -83,6 +103,7 @@ export interface Overview {
   indices: Metric[];
   pipelines: Metric[];
   logstashNodes: Metric[];
+  allocationNode: Metric | null;
   series: SeriesPoint[];
   intervalMs: number;
   serverTime: number;

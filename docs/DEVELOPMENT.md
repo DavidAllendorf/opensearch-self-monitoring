@@ -22,7 +22,7 @@ JDK 21 und ein gesetztes `JAVA_HOME` reichen. Der Wrapper ist versioniert:
 ./gradlew :opensearch-plugin:test :opensearch-plugin:pluginZip
 ```
 
-Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.3.0.zip`.
+Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.4.0.zip`.
 Unter Windows `gradlew.bat` verwenden. `gradle.properties` legt die beiden
 Versionsnummern fest. OpenSearch-Abhaengigkeiten sind `compileOnly`; Plattform-
 JARs werden nicht doppelt ins Plugin gepackt.

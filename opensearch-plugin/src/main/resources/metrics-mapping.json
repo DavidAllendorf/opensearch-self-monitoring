@@ -188,6 +188,25 @@
     "processors": {
       "enabled": false,
       "type": "object"
+    },
+    "allocation_shards": {
+      "type": "long"
+    },
+    "allocation_primaries": {
+      "type": "long"
+    },
+    "allocation_replicas": {
+      "type": "long"
+    },
+    "allocation_indices": {
+      "type": "long"
+    },
+    "allocation_sampled_shards": {
+      "type": "long"
+    },
+    "allocations": {
+      "type": "object",
+      "enabled": false
     }
   }
 }
