@@ -1,0 +1,18 @@
+.smPage { max-width: 1600px; width: 100%; margin: 0 auto; padding: 32px; }
+.smEyebrow { font-size: 11px; letter-spacing: .12em; opacity: .65; margin-bottom: 8px; }
+.smStatusLine { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+.smStats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.smCharts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.smChart svg { width: 100%; height: auto; margin-top: 12px; overflow: visible; }
+.smChart svg text { fill: currentColor; font-size: 10px; opacity: .65; }
+.smGrid { stroke: currentColor; opacity: .12; }
+.smLegend { display: flex; gap: 16px; font-size: 11px; margin-top: 10px; }
+.smLegend span { display: inline-flex; align-items: center; gap: 6px; }
+.smLegend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.smEmptyChart { padding: 72px 0; text-align: center; font-size: 12px; opacity: .65; }
+@media (max-width: 1100px) { .smStats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .smPage { padding: 16px; }
+  .smCharts { grid-template-columns: 1fr; }
+  .smStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

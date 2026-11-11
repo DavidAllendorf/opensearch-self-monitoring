@@ -1,0 +1,27 @@
+plugins { id 'java-library' }
+
+group = 'de.allendorf.opensearch'
+version = rootProject.property('pluginVersion')
+repositories { mavenCentral() }
+
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+dependencies {
+    compileOnly "org.opensearch:opensearch:${rootProject.property('opensearchVersion')}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test { useJUnitPlatform() }
+
+tasks.register('pluginZip', Zip) {
+    dependsOn jar
+    archiveBaseName = 'stack-monitoring'
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(tasks.jar)
+    from('src/main/plugin-metadata') {
+        expand(pluginVersion: project.version, opensearchVersion: rootProject.property('opensearchVersion'))
+    }
+    from(rootProject.file('LICENSE'))
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+assemble.dependsOn pluginZip

@@ -1,0 +1,4 @@
+{
+  "skipInstallDependencies": true,
+  "serverSourcePatterns": ["package.json", "opensearch_dashboards.json", "common/**/*", "server/**/*", "!**/*.test.*"]
+}

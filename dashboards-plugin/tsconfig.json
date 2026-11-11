@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {"noEmit": true, "skipLibCheck": true},
+  "include": ["../../typings/**/*", "../../opensearch_dashboards.d.ts", "common/**/*", "server/**/*", "public/**/*"]
+}
