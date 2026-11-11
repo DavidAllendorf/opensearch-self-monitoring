@@ -1,3 +1,4 @@
+import React from 'react';
 import { EuiPanel, EuiTitle } from '@elastic/eui';
 import type { SeriesPoint } from '../../common/types';
 import { number } from '../format';

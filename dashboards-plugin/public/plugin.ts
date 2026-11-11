@@ -15,7 +15,7 @@ export class StackMonitoringPlugin implements Plugin {
       },
     });
     core.chrome.navGroup.addNavLinksToGroup(DEFAULT_NAV_GROUPS.dataAdministration, [
-      { id: 'stackMonitoring', order: 20, euiIconType: 'monitoringApp' },
+      { id: 'stackMonitoring', order: 20 },
     ]);
   }
   public start() {}

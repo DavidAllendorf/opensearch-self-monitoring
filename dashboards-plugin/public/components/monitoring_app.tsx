@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   EuiBadge, EuiButton, EuiButtonEmpty, EuiCallOut, EuiFlexGroup, EuiFlexItem,
   EuiInMemoryTable, EuiLoadingSpinner, EuiPanel, EuiSelect, EuiSpacer,

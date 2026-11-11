@@ -1,29 +1,43 @@
-# Produktiver Rollout 0.1.0
+# Native Auslieferung auf 3.6.0
 
-Am 11.11.2026 auf `192.168.178.40` nativ installiert.
+Ziel: 192.168.178.40, OpenSearch und OpenSearch Dashboards 3.6.0, Pluginversion 0.2.0.
+Installation ohne Container.
 
-- OpenSearch 3.9.0: `stack-monitoring` 0.1.0.
-- OpenSearch Dashboards 3.9.0: `stackMonitoring` 0.1.0.
-- Unveraenderte, zuvor gepruefte ZIP-Pakete; SHA-256 vor Installation kontrolliert.
-- Erfassung ohne zusaetzliche Konfiguration alle 10 Sekunden; sieben UTC-Tagesindizes.
-- Die vorhandene native Anmeldung als `admin` und TLS bleiben aktiv.
-- Pakete und Installationsskript: `/opt/opensearch-self-monitoring/releases/0.1.0/`.
+Artefakte auf dem Server:
 
-## Zugriff
+- /opt/opensearch-self-monitoring/releases/0.2.0/stack-monitoring-0.2.0.zip
+- /opt/opensearch-self-monitoring/releases/0.2.0/stackMonitoring-3.6.0.zip
 
-<https://opensearch.home-da.de/app/stackMonitoring>
+Die alten Plugins wurden bei gestoppten Diensten entfernt und die neu gebauten
+3.6-Plugins mit den offiziellen Installern installiert. Dashboards bleibt im
+privaten Netzwerk auf Port 5601 und ueber Pangolin unter
+https://opensearch.home-da.de/app/stackMonitoring erreichbar.
+Die vorhandene native Anmeldung bleibt bestehen; Zugangsdaten stehen nicht im Git.
 
-Mit dem bestehenden Benutzer anmelden. Bei einem noch geoeffneten Browser-Tab
-nach dem Plugin-Rollout die Seite neu laden.
+## Plattformmigration
 
-## Abnahme
+Ein neueres Datenverzeichnis darf nicht direkt mit einer aelteren OpenSearch-Version
+geoeffnet werden. Logs, Monitoring-Historie, gespeicherte Objekte, Mappings, Aliase
+und benutzerdefinierte Templates wurden deshalb logisch exportiert und in einer
+frischen 3.6-Datenablage wiederhergestellt. Die Dokumentzahlen wurden vor dem
+Paketwechsel verglichen. Dashboards 3.6 migriert die gespeicherten Objekte selbst.
+Plattforminterne Seed-Indizes werden neu erzeugt.
 
-- Zwei aufeinanderfolgende Live-Samples einschliesslich berechneter Raten.
-- Dashboards-API liefert Cluster, Knoten, Indizes und Verlauf des Clusters `logging`.
-- Anmeldung und grafische Live-Ansicht ueber Pangolin im integrierten Browser geprueft.
-- Neues Logereignis ueber Filebeat und Logstash erfolgreich in OpenSearch angekommen.
-- Clusterstatus gruen; OpenSearch, Dashboards, Logstash und Filebeat aktiv.
-- Die fuer die Pruefung erzeugte Logdatei wurde entfernt.
+Alle neun Security-Konfigurationstypen wurden separat uebernommen. Nur die
+Audit-Kategorien CLUSTER_SETTINGS_CHANGED und INDEX_SETTINGS_CHANGED wurden aus
+den Audit-Filterlisten entfernt, weil 3.6 diese Namen nicht kennt.
 
-Die Plugin-Installation wurde einmalig per SSH vorgenommen. Das bestehende
-Ansible bleibt auf das Verteilen normaler Konfigurationen beschraenkt.
+Private Sicherungen auf dem Server liegen unter /opt/opensearch-migration-3.6/:
+final-export, security-backup, security-3.6 und rollback-3.9 mit den originalen
+Daten, Konfigurationen und 3.9-Paketen. Sie enthalten sensible Daten und gehoeren
+nicht ins Git.
+
+Fuer einen Plattform-Rollback alle vier Dienste stoppen, 3.6-Plugins entfernen,
+originale 3.9-Pakete und Konfigurationen wiederherstellen, das originale gesicherte
+Datenverzeichnis zuruecksetzen und die 0.1.0-Plugins installieren.
+Nach dem Start die persistente Einstellung cluster.blocks.read_only mit dem
+Admin-Zertifikat auf null setzen und Dashboards, Logstash und Filebeat starten.
+Spaeter neu eingegangene Daten muessen bei einem Rollback separat uebernommen werden.
+
+Entwicklung und regulaere Updates: DEVELOPMENT.md und DELIVERY.md.
+Historische Auslieferung: DEPLOYMENT-3.9.md.

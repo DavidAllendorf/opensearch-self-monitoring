@@ -22,18 +22,18 @@ JDK 21 und ein gesetztes `JAVA_HOME` reichen. Der Wrapper ist versioniert:
 ./gradlew :opensearch-plugin:test :opensearch-plugin:pluginZip
 ```
 
-Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.1.0.zip`.
+Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.2.0.zip`.
 Unter Windows `gradlew.bat` verwenden. `gradle.properties` legt die beiden
 Versionsnummern fest. OpenSearch-Abhaengigkeiten sind `compileOnly`; Plattform-
 JARs werden nicht doppelt ins Plugin gepackt.
 
 ## Dashboards-Plugin entwickeln und bauen
 
-Empfohlen: Linux/WSL, Node **22.23.0**, Yarn **1.22.19**, mindestens 8 GB RAM fuer
+Empfohlen: Linux/WSL, Node **22.22.0**, Yarn **1.22.19**, mindestens 8 GB RAM fuer
 den Build und etwa 8 GB freien Speicher. Den Quellbaum einmalig vorbereiten:
 
 ```sh
-git clone --depth 1 --branch 3.9.0 https://github.com/opensearch-project/OpenSearch-Dashboards.git
+git clone --depth 1 --branch 3.6.0 https://github.com/opensearch-project/OpenSearch-Dashboards.git
 cd OpenSearch-Dashboards
 corepack prepare yarn@1.22.19 --activate
 yarn osd bootstrap
@@ -50,7 +50,7 @@ bash scripts/build-dashboards.sh /absoluter/pfad/OpenSearch-Dashboards
 ```
 
 Das Skript verwendet einen eigenen temporaeren Plugin-Ordner. Fertiges ZIP:
-`artifacts/stackMonitoring-3.9.0.zip`. Es enthaelt vorkompilierte Browser-Bundles
+`artifacts/stackMonitoring-3.6.0.zip`. Es enthaelt vorkompilierte Browser-Bundles
 und transpilierten Servercode. Ein Server braucht zum Installieren keinen Build.
 
 Fuer interaktive Entwicklung stattdessen `dashboards-plugin/` nach

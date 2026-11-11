@@ -1,33 +1,15 @@
-# Pruefprotokoll
+# Verifikation fuer OpenSearch 3.6.0
 
-Stand: 11.11.2026, Version 0.1.0, Zielplattform 3.9.0.
+Pluginversion 0.2.0 wurde gegen OpenSearch und OpenSearch Dashboards 3.6.0 gebaut.
+Historische Ergebnisse stehen in VERIFICATION-3.9.md.
 
-## Geprueft
+- Java: Gradle-Tests und Plugin-ZIP gegen echte 3.6.0-Abhaengigkeiten.
+- Dashboard: vier Quelltests, TypeScript-Pruefung im 3.6.0-Quellbaum und offizieller Plugin-Helpers-Build mit Node 22.22.0.
+- Native Testinstanzen: beide ZIPs installiert; automatische Erfassung, Cluster-, Knoten-, Indexdaten und Zeitreihen erfolgreich abgefragt.
+- Berechtigungen: Lesebenutzer bekommt Daten, Benutzer ohne Indexrechte 403; ungueltige Abfragen bekommen 400.
+- Browser: Dashboard 3.6.0 mit Kennzahlen, Diagrammen und Tabellen geladen.
+- Datenmigration: logischer Export aus 3.9.0, Import in frische 3.6.0-Datenablage; Dokumentzahlen aller uebernommenen Indizes abgeglichen.
 
-- Java-Compilation mit JDK 21 gegen die veroeffentlichten OpenSearch-3.9.0-APIs.
-- Java-Unit-Tests: Raten, Zaehler-Resets, Latenz, UTC und enge Retention-Loeschgrenzen.
-- TypeScript-Unit-Tests: Zeitbucket-Grenzen, Abfragefilter und fehlende Werte.
-- Native Integration auf Debian 13 mit echtem OpenSearch 3.9.0 und aktiver
-  OpenSearch Security, eigener Cluster auf Ports 19200/19300, eigene Datenpfade.
-- Der interne Collector schreibt ohne Benutzerpasswort bei aktiver Security.
-- Mehrere aufeinanderfolgende Samples, Cluster-/Knotendokumente und Indexdetails
-  fuer einen Testindex mit fuenf Dokumenten sowie berechnete Raten.
-- Retention im echten Cluster: abgelaufener eigener Tagesindex entfernt;
-  ein aehnlich benannter Backup-Index und ein fremder Index blieben bestehen.
-- Dashboards-Typpruefung gegen den offiziellen 3.9.0-Quellbaum ohne Fehler.
-- Browser-Bundle und installierbares Dashboards-ZIP mit den offiziellen
-  `@osd/plugin-helpers` gebaut, ohne eigene Nachbildung des Bundleformats.
-- ZIP auf einer separaten nativen Dashboards-3.9.0-Instanz geladen.
-- API mit echtem Login: Monitoring-Leser erhaelt Daten, ein Nutzer ohne
-  Indexrechte erhaelt HTTP 403. Ungueltige Zeitraeume und Entity-Anfragen
-  werden mit HTTP 400 abgelehnt. History bleibt auf weniger als 125 Buckets begrenzt.
-- Integrierter Browser: Login, Clusterkarten, vier Zeitdiagramme, Knotentabelle,
-  Knotendetail, Indextabelle, Indexverlauf und Pause erfolgreich bedient.
-- Testkonten und Testindizes wurden entfernt, die separaten Testinstanzen gestoppt.
-
-Eine Live-Installation auf dem eigentlichen Logging-Cluster ist nicht Teil dieser
-isolierten Pruefung.
-
-Nicht geprueft: Mehrknoten-Failover, Lasttests mit vielen Indizes, andere
-Plattformversionen und externe Authentifizierungsprovider. Die CI-Definition
-ist mitgeliefert; ein erfolgreicher GitHub-CI-Lauf wird hier nicht behauptet.
+Fuer 3.6 waren neben Versionsangaben React-Imports fuer dessen JSX-Build und
+das Entfernen der dort nicht vorhandenen NavLink-Eigenschaft euiIconType erforderlich.
+Ein blosses Umbenennen vorhandener 3.9-ZIPs reicht nicht.

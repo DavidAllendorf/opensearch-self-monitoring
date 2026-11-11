@@ -1,6 +1,6 @@
 # OpenSearch Self Monitoring
 
-Zwei native Plugins fuer **OpenSearch 3.9.0** und **OpenSearch Dashboards 3.9.0**.
+Zwei native Plugins fuer **OpenSearch 3.6.0** und **OpenSearch Dashboards 3.6.0**.
 Der Cluster erfasst seine eigenen Metriken und speichert sie selbst. Es werden
 keine Container, externen Collector-Dienste oder Zugangsdaten fuer die Erfassung
 benoetigt. Eigenstaendige Implementierung unter Apache-2.0.

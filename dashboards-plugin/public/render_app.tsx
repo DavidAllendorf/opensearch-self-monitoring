@@ -1,3 +1,4 @@
+import React from 'react';
 import ReactDOM from 'react-dom';
 import type { AppMountParameters, CoreStart } from '../../../src/core/public';
 import { MonitoringApp } from './components/monitoring_app';

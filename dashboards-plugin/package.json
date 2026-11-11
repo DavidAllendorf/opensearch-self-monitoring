@@ -1,14 +1,14 @@
 {
   "name": "stack-monitoring-dashboards",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Self-monitoring for the connected OpenSearch cluster",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "yarn plugin-helpers build --opensearch-dashboards-version 3.9.0",
+    "build": "yarn plugin-helpers build --opensearch-dashboards-version 3.6.0",
     "plugin-helpers": "node ../../scripts/plugin_helpers",
     "osd": "node ../../scripts/osd"
   },
-  "opensearchDashboards": {"version": "3.9.0"},
+  "opensearchDashboards": {"version": "3.6.0"},
   "devDependencies": {}
 }

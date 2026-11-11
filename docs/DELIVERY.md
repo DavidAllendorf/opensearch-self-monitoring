@@ -8,7 +8,7 @@ nativen OpenSearch-/Dashboards-Paar. Danach ein Git-Tag setzen und dieselben
 geprueften ZIPs ausliefern. Die mitgelieferte GitHub-Actions-Datei baut beide
 Artefakte; ein automatisches Deployment auf Benutzer-Server findet nicht statt.
 
-Der Pluginstand ist 0.1.0, die Plattform-Kompatibilitaet exakt 3.9.0.
+Der Pluginstand ist 0.2.0, die Plattform-Kompatibilitaet exakt 3.6.0.
 Das ZIP nicht fuer andere Plattformversionen umbenennen oder dessen Manifest
 manuell passend machen.
 
@@ -19,11 +19,11 @@ OpenSearch-Knoten beziehungsweise jeder Dashboards-Instanz:
 
 ```sh
 systemctl stop opensearch
-/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.1.0.zip
+/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.2.0.zip
 systemctl start opensearch
 
 systemctl stop opensearch-dashboards
-/usr/share/opensearch-dashboards/bin/opensearch-dashboards-plugin install file:///pfad/stackMonitoring-3.9.0.zip --allow-root
+/usr/share/opensearch-dashboards/bin/opensearch-dashboards-plugin install file:///pfad/stackMonitoring-3.6.0.zip --allow-root
 systemctl start opensearch-dashboards
 ```
 
