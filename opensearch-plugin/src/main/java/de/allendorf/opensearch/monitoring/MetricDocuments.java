@@ -12,7 +12,7 @@ final class MetricDocuments {
 
     static Map<String, Object> base(String kind, long now, String clusterId, String clusterName) {
         Map<String, Object> doc = new LinkedHashMap<>();
-        doc.put("schema_version", 1);
+        doc.put("schema_version", 2);
         doc.put("timestamp", now);
         doc.put("kind", kind);
         doc.put("cluster_uuid", clusterId);
@@ -33,6 +33,7 @@ final class MetricDocuments {
         Map<String, Object> doc = base("index", now, clusterId, clusterName);
         doc.put("index_name", index.getIndex());
         doc.put("index_uuid", index.getUuid());
+        doc.put("shards", index.getShards().length);
         indexCounters(doc, index.getPrimaries(), index.getTotal());
         return doc;
     }
@@ -41,6 +42,8 @@ final class MetricDocuments {
         Map<String, Object> doc = base("node", now, clusterId, clusterName);
         doc.put("node_id", node.getNode().getId());
         doc.put("node_name", node.getNode().getName());
+        doc.put("roles", node.getNode().getRoles().stream().map(role -> role.roleName()).sorted().toList());
+        doc.put("version", node.getNode().getVersion().toString());
         doc.put("cpu_percent", node.getOs().getCpu().getPercent());
         doc.put("heap_percent", node.getJvm().getMem().getHeapUsedPercent());
         doc.put("heap_used_bytes", node.getJvm().getMem().getHeapUsed().getBytes());
@@ -69,12 +72,21 @@ final class MetricDocuments {
         long elapsed = previous == null ? 0 : number(current, "timestamp") - number(previous, "timestamp");
         // Node counters are scoped to a JVM; a restart invalidates even an increasing counter.
         if (previous != null && current.containsKey("uptime_ms") && number(current, "uptime_ms") < number(previous, "uptime_ms")) previous = null;
+        if (previous != null && current.containsKey("counter_epoch") && !current.get("counter_epoch").equals(previous.get("counter_epoch"))) previous = null;
         for (String kind : new String[]{"index", "search"}) {
             Long oldCount = previous == null ? null : number(previous, kind + "_total");
             Long oldTime = previous == null ? null : number(previous, kind + "_time_ms");
             current.put(kind + "_rate", MetricMath.rate(number(current, kind + "_total"), oldCount, elapsed));
             current.put(kind + "_latency_ms", MetricMath.latency(number(current, kind + "_time_ms"), oldTime, number(current, kind + "_total"), oldCount));
         }
+        for (String field : new String[]{"events_in", "events_out", "events_failed"}) {
+            if (!current.containsKey(field + "_total")) continue;
+            current.put(field + "_rate", MetricMath.rate(number(current, field + "_total"),
+                previous == null ? null : number(previous, field + "_total"), elapsed));
+        }
+        if (current.containsKey("events_time_ms")) current.put("events_latency_ms", MetricMath.latency(
+            number(current, "events_time_ms"), previous == null ? null : number(previous, "events_time_ms"),
+            number(current, "events_in_total"), previous == null ? null : number(previous, "events_in_total")));
     }
 
     static long number(Map<String, Object> doc, String key) { return ((Number) doc.getOrDefault(key, 0)).longValue(); }

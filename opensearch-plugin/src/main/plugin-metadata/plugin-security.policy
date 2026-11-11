@@ -1,0 +1,4 @@
+grant {
+    // The optional collector may only query the co-located Logstash monitoring API.
+    permission java.net.SocketPermission "127.0.0.1:9600", "connect,resolve";
+};

@@ -22,7 +22,7 @@ JDK 21 und ein gesetztes `JAVA_HOME` reichen. Der Wrapper ist versioniert:
 ./gradlew :opensearch-plugin:test :opensearch-plugin:pluginZip
 ```
 
-Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.2.0.zip`.
+Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.3.0.zip`.
 Unter Windows `gradlew.bat` verwenden. `gradle.properties` legt die beiden
 Versionsnummern fest. OpenSearch-Abhaengigkeiten sind `compileOnly`; Plattform-
 JARs werden nicht doppelt ins Plugin gepackt.
@@ -89,7 +89,8 @@ Keine Zugangsdaten in Quelltext, Shell-Historie oder Git ablegen.
 3. API-Abfrage und Diagramm oder Tabelle erweitern.
 4. Zaehler-Reset und fehlende Werte testen, dann einen echten Cluster pruefen.
 
-Schemaaenderungen benoetigen eine Migration oder einen neuen Indexpraefix.
-Bestehende Tagesindizes werden absichtlich nicht stillschweigend umgemappt.
+Additive Schemaaenderungen werden beim Vorbereiten des Tagesindex mit Put-Mapping
+ergaenzt. Inkompatible Feldtypen benoetigen weiterhin eine Migration oder einen
+neuen Indexpraefix. Alte Dokumente enthalten neue Felder nicht; die UI muss fehlende Werte behandeln.
 Bei einem Versionswechsel beide ZIPs neu bauen und gegen exakt diese
 OpenSearch-/Dashboards-Version testen.

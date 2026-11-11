@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { historyQuery } from '../server/queries';
 import { bytes, number } from '../public/format';
+import { navigationHash, parseNavigation, historyKind } from '../public/navigation';
 
 test('long time ranges remain bounded to roughly 120 buckets', () => {
   const query = historyQuery(10080, 'cluster', undefined, 1_000_000_000);
@@ -28,4 +29,19 @@ test('formatting distinguishes a missing metric from zero', () => {
   assert.equal(bytes(1024), '1 KiB');
   assert.equal(bytes(undefined), '—');
   assert.equal(number(Number.NaN), '—');
+});
+
+test('pipeline histories are scoped to exact entity and current cluster', () => {
+  const query = historyQuery(15, 'pipeline', 'logstash:node:a/b', 1000000, 10000, 'current-cluster');
+  assert.deepEqual(query.query.bool.filter.slice(2), [
+    { term: { cluster_uuid: 'current-cluster' } }, { term: { pipeline_uid: 'logstash:node:a/b' } },
+  ]);
+});
+
+test('detail navigation is shareable and invalid views fall back safely', () => {
+  const nav = { section: 'logstash' as const, view: 'pipelines' as const, entity: 'node:a/b?#', label: 'main & backup' };
+  assert.deepEqual(parseNavigation(navigationHash(nav)), nav);
+  assert.equal(historyKind(nav), 'pipeline');
+  assert.equal(parseNavigation('#/logstash/indices').view, 'overview');
+  assert.equal(historyKind({ section: 'logstash', view: 'overview' }), 'logstash');
 });

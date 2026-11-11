@@ -8,6 +8,7 @@ java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 dependencies {
     compileOnly "org.opensearch:opensearch:${rootProject.property('opensearchVersion')}"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation "org.opensearch:opensearch:${rootProject.property('opensearchVersion')}"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 test { useJUnitPlatform() }

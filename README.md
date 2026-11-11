@@ -13,6 +13,11 @@ benoetigt. Eigenstaendige Implementierung unter Apache-2.0.
 - Zeitverlaeufe fuer Cluster, einzelne Knoten und einzelne Indizes.
 - Durchsuchbare Tabellen, Zeitraumauswahl, automatische Aktualisierung,
   Pause und eine Warnung bei veralteten Messwerten.
+- Produktnavigation fuer OpenSearch und Logstash mit Uebersicht-, Nodes-,
+  Indizes- und Pipeline-Tabs sowie direkt verlinkbaren Detailansichten.
+- Ingest-Pipeline- und Prozessorstatistiken pro OpenSearch-Node.
+- Automatische Erkennung des lokalen Logstash: Event-Durchsatz, JVM, CPU,
+  Pipeline-Worker, Queues und Inputs/Filter/Outputs.
 
 Die Oberflaeche wird unter **Stack Monitoring** registriert, auch in der neuen
 Navigation unter **Data administration**. Direkter Pfad: `/app/stackMonitoring`.
@@ -24,8 +29,9 @@ Navigation unter **Data administration**. Direkter Pfad: `/app/stackMonitoring`.
 3. Als Administrator anmelden und **Stack Monitoring** oeffnen.
 
 Nach etwa zwei Erfassungsintervallen erscheinen auch die berechneten Raten.
-Das Plugin nutzt intern dieselben Aktionen wie Cluster Health, Nodes Stats und
-Indices Stats; es pollt keinen HTTP-Endpunkt und benoetigt kein Admin-Passwort.
+Die OpenSearch-Erfassung nutzt intern dieselben Aktionen wie Cluster Health,
+Nodes Stats und Indices Stats, ohne HTTP-Aufruf oder Admin-Passwort. Nur die
+optionale Logstash-Erfassung liest dessen lokale HTTP-Monitoring-API.
 Nur der gewaehlte Cluster-Manager sammelt. Deshalb auf allen fuer diese Rolle
 geeigneten Knoten installieren, empfohlen einheitlich auf allen Knoten.
 
@@ -62,17 +68,27 @@ stack_monitoring.interval: 10s
 stack_monitoring.request_timeout: 5s
 stack_monitoring.retention_days: 7
 stack_monitoring.max_indices: 1000
+stack_monitoring.logstash.enabled: true
 ```
 
-Das kleinste Intervall ist 5 Sekunden. Es gibt keine externen Ziele oder
+Das kleinste Intervall ist 5 Sekunden. Es gibt keine frei konfigurierbaren HTTP-Ziele oder
 Passwortfelder. Die Einstellungen sind bewusst statisch, damit kleine
 Installationen einfach nachvollziehbar bleiben.
 
 ## Umfang
 
-Diese erste Version ueberwacht **OpenSearch selbst**. Sie ist kein vollstaendiger
-Ersatz fuer alle Elasticsearch-Stack-Monitoring-Funktionen: kein Logstash-/Beats-
-Monitoring, kein Alerting, keine Ferncluster und kein externer Verfuegbarkeitstest.
+Version 0.3.0 ueberwacht **OpenSearch selbst und ein lokales Logstash**.
+Logstash wird ausschliesslich am gewaehlten Cluster-Manager ueber
+`http://127.0.0.1:9600/_node/stats` abgefragt. Bei einem Rollenwechsel kann
+damit eine andere lokale Logstash-Instanz erscheinen. Fuer fremde Hosts,
+authentifizierte Logstash-APIs oder Ferncluster ist ein separater Collector
+erforderlich. Die lokale API wird weder im Netzwerk freigegeben noch als
+Browser-Proxy angeboten. Mit `stack_monitoring.logstash.enabled: false`
+laesst sich diese Abfrage abschalten.
+
+Die Gestaltung orientiert sich an der Navigation des Elastic Stack Monitoring;
+es ist eine eigene Implementierung mit OpenSearch-/EUI-Komponenten.
+Kein Beats-Monitoring, Alerting oder externer Verfuegbarkeitstest.
 Bei einem vollstaendigen Clusterausfall kann der Cluster keine neuen Messungen
 mehr schreiben. Bereits gespeicherte Messungen bleiben erhalten.
 

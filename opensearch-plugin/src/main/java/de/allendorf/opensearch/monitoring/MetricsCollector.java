@@ -8,6 +8,7 @@ import org.opensearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.opensearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.opensearch.action.admin.indices.create.CreateIndexRequest;
 import org.opensearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.opensearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.opensearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.index.IndexRequest;
@@ -84,7 +85,7 @@ final class MetricsCollector extends AbstractLifecycleComponent {
         if ("_na_".equals(clusterId)) return;
         String clusterName = state.getClusterName().value();
         var health = client.admin().cluster().health(new ClusterHealthRequest().timeout(timeout)).actionGet(timeout);
-        var nodesRequest = new NodesStatsRequest().clear().addMetrics("os", "jvm", "fs", "thread_pool").indices(true);
+        var nodesRequest = new NodesStatsRequest().clear().addMetrics("os", "jvm", "fs", "thread_pool", "ingest").indices(true);
         nodesRequest.timeout(timeout);
         var nodes = client.admin().cluster().nodesStats(nodesRequest).actionGet(timeout);
         var indices = client.admin().indices().stats(new IndicesStatsRequest()
@@ -94,12 +95,26 @@ final class MetricsCollector extends AbstractLifecycleComponent {
             throw new IllegalStateException("Partial stats response; refusing to record misleading totals");
         }
         List<Map<String, Object>> documents = new ArrayList<>();
-        for (var node : nodes.getNodes()) documents.add(MetricDocuments.node(node, now, clusterId, clusterName));
+        for (var node : nodes.getNodes()) {
+            documents.add(MetricDocuments.node(node, now, clusterId, clusterName));
+            documents.addAll(PipelineDocuments.ingest(node, now, clusterId, clusterName));
+        }
         int maxIndices = MonitoringSettings.MAX_INDICES.get(settings);
         indices.getIndices().values().stream().sorted(java.util.Comparator.comparing(i -> i.getIndex()))
-            .limit(maxIndices).forEach(index -> documents.add(MetricDocuments.index(index, now, clusterId, clusterName)));
+            .limit(maxIndices).forEach(index -> {
+                var doc = MetricDocuments.index(index, now, clusterId, clusterName);
+                var routing = state.routingTable().index(index.getIndex());
+                if (routing != null) doc.put("status", !routing.allPrimaryShardsActive() ? "red"
+                    : routing.shardsMatchingPredicateCount(shard -> !shard.active()) > 0 ? "yellow" : "green");
+                documents.add(doc);
+            });
 
         var summary = MetricDocuments.base("cluster", now, clusterId, clusterName);
+        if (MonitoringSettings.LOGSTASH_ENABLED.get(settings)) {
+            var logstash = LocalLogstash.read();
+            summary.put("logstash_available", logstash != null);
+            if (logstash != null) documents.addAll(PipelineDocuments.logstash(logstash, now, clusterId, clusterName));
+        }
         summary.put("status", health.getStatus().toString().toLowerCase(java.util.Locale.ROOT));
         summary.put("nodes", health.getNumberOfNodes());
         summary.put("data_nodes", health.getNumberOfDataNodes());
@@ -143,7 +158,7 @@ final class MetricsCollector extends AbstractLifecycleComponent {
     }
 
     private static String identity(Map<String, Object> doc) {
-        return doc.get("kind") + ":" + doc.getOrDefault("node_id", doc.getOrDefault("index_uuid", doc.get("cluster_uuid")));
+        return doc.get("kind") + ":" + doc.getOrDefault("pipeline_uid", doc.getOrDefault("node_id", doc.getOrDefault("index_uuid", doc.get("cluster_uuid"))));
     }
 
     private void ensureIndex(String name) throws IOException {
@@ -160,6 +175,8 @@ final class MetricsCollector extends AbstractLifecycleComponent {
                 .mapping(mapping, XContentType.JSON)).actionGet(timeout);
         } catch (Exception error) {
             if (!(ExceptionsHelper.unwrapCause(error) instanceof ResourceAlreadyExistsException)) throw error;
+            // Additive schema upgrade: retain all existing fields and documents in today's index.
+            client.admin().indices().putMapping(new PutMappingRequest(name).source(mapping, XContentType.JSON)).actionGet(timeout);
         }
         preparedIndex = name;
     }
