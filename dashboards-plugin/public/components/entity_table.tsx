@@ -36,7 +36,7 @@ export function EntityTable({ items, kind, logstash, onSelect }: Props) {
     ]),
   ];
   return <>
-    <EuiInMemoryTable items={items} columns={columns} sorting
+    <EuiInMemoryTable compressed items={items} columns={columns} sorting
       pagination={{ initialPageSize: 10, pageSizeOptions: [10, 25, 100] }}
       search={{ box: { incremental: true, placeholder: pipeline ? 'Pipelines oder Nodes suchen …' : 'Nach Name suchen …' } }}
       message={pipeline ? 'Keine Pipelines in der aktuellen Messung vorhanden.' : 'Keine Einträge in der aktuellen Messung vorhanden.'} />

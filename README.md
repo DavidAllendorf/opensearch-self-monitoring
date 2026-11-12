@@ -20,6 +20,10 @@ benoetigt. Eigenstaendige Implementierung unter Apache-2.0.
   Pipeline-Worker, Queues und Inputs/Filter/Outputs.
 - Node-Details mit lokalen Indizes und Shard-Kopien: Shard-ID, Primary/Replica,
   Routing-Zustand, Verschiebungsquelle/-ziel sowie lokale Dokumente und Daten.
+- Shard Activity in der Cluster-Uebersicht: laufende und kuerzlich abgeschlossene
+  Recoveries mit Phase, Quelle/Ziel, Primary/Replica und Uebertragungsfortschritt.
+- Kompakte Standardansicht und sichtbar zusaetzliche Diagramme ueber
+  „Erweiterte Metriken“, direkt bei den jeweiligen Diagrammen.
 
 Die Oberflaeche wird unter **Stack Monitoring** registriert, auch in der neuen
 Navigation unter **Data administration**. Direkter Pfad: `/app/stackMonitoring`.
@@ -86,7 +90,7 @@ Installationen einfach nachvollziehbar bleiben.
 
 ## Umfang
 
-Version 0.5.0 ueberwacht **den eigenen OpenSearch-Cluster und bis zu 16 Logstash-API-Ziele**.
+Das Plugin ueberwacht **den eigenen OpenSearch-Cluster und bis zu 16 Logstash-API-Ziele**.
 Ohne Konfiguration wird nur `http://127.0.0.1:9600` am Collector gelesen.
 Fuer mehrere Logstash-Server deren HTTP(S)-Basis-URLs konfigurieren, zum Beispiel:
 

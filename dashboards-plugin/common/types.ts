@@ -10,6 +10,15 @@ export interface ProcessorMetric {
   failed?: number;
 }
 
+export interface ShardRecovery {
+  index_name: string; index_uuid: string; shard_id: number; primary: boolean;
+  stage: string; recovery_type: string; start_ms: number; stop_ms: number; time_ms: number;
+  source_node?: string; target_node: string; repository?: string; snapshot?: string;
+  files_recovered: number; files_total: number; files_reused: number;
+  bytes_recovered: number; bytes_total: number; bytes_percent?: number;
+  translog_recovered: number; translog_total?: number;
+}
+
 export interface ShardAllocation {
   index_name: string;
   index_uuid: string;
@@ -36,7 +45,14 @@ export interface Metric {
   indices?: number;
   sampled_indices?: number;
   active_shards?: number;
+  active_primary_shards?: number;
+  initializing_shards?: number;
+  relocating_shards?: number;
   unassigned_shards?: number;
+  recoveries_available?: boolean;
+  recovery_total?: number;
+  recovery_sampled?: number;
+  recoveries?: ShardRecovery[];
   node_id?: string;
   node_name?: string;
   index_name?: string;
@@ -96,6 +112,7 @@ export const HISTORY_FIELDS = [
   'events_latency_ms', 'worker_utilization', 'queue_backpressure', 'queue_events',
   'queue_bytes', 'docs', 'store_bytes', 'thread_pool_queue', 'rejected_total',
   'disk_available_bytes', 'gc_time_ms',
+  'active_shards', 'initializing_shards', 'relocating_shards', 'unassigned_shards', 'events_current',
 ] as const;
 export type SeriesPoint = { timestamp: number } & Record<typeof HISTORY_FIELDS[number], number | null>;
 

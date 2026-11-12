@@ -10,6 +10,8 @@ import org.opensearch.action.admin.indices.create.CreateIndexRequest;
 import org.opensearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.opensearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.opensearch.action.admin.indices.stats.IndicesStatsRequest;
+import org.opensearch.action.admin.indices.recovery.RecoveryRequest;
+import org.opensearch.action.support.IndicesOptions;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.cluster.service.ClusterService;
@@ -128,7 +130,11 @@ final class MetricsCollector extends AbstractLifecycleComponent {
         summary.put("nodes", health.getNumberOfNodes());
         summary.put("data_nodes", health.getNumberOfDataNodes());
         summary.put("active_shards", health.getActiveShards());
+        summary.put("active_primary_shards", health.getActivePrimaryShards());
+        summary.put("initializing_shards", health.getInitializingShards());
+        summary.put("relocating_shards", health.getRelocatingShards());
         summary.put("unassigned_shards", health.getUnassignedShards());
+        collectRecoveries(summary, now);
         summary.put("indices", indices.getIndices().size());
         summary.put("sampled_indices", Math.min(maxIndices, indices.getIndices().size()));
         summary.put("interval_ms", MonitoringSettings.INTERVAL.get(settings).millis());
@@ -168,6 +174,21 @@ final class MetricsCollector extends AbstractLifecycleComponent {
 
     private static String identity(Map<String, Object> doc) {
         return doc.get("kind") + ":" + doc.getOrDefault("pipeline_uid", doc.getOrDefault("node_id", doc.getOrDefault("index_uuid", doc.get("cluster_uuid"))));
+    }
+
+    private void collectRecoveries(Map<String, Object> summary, long now) {
+        try {
+            var request = new RecoveryRequest("*").indicesOptions(IndicesOptions.lenientExpandOpenHidden());
+            request.detailed(false);
+            request.activeOnly(false);
+            var response = client.admin().indices().recoveries(request).actionGet(timeout);
+            if (response.getFailedShards() > 0) throw new IllegalStateException("Partial recovery response");
+            var states = response.shardRecoveryStates().values().stream().flatMap(List::stream).toList();
+            RecoveryDocuments.add(summary, states, now - MonitoringSettings.RETENTION.get(settings) * 86_400_000L);
+        } catch (Exception error) {
+            summary.put("recoveries_available", false);
+            LOG.warn("Shard activity unavailable for this sample; other metrics are still collected", error);
+        }
     }
 
     private void ensureIndex(String name) throws IOException {

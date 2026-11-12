@@ -213,6 +213,28 @@
     },
     "logstash_failed_targets": {
       "type": "integer"
+    },
+    "active_primary_shards": {
+      "type": "integer"
+    },
+    "initializing_shards": {
+      "type": "integer"
+    },
+    "relocating_shards": {
+      "type": "integer"
+    },
+    "recovery_total": {
+      "type": "integer"
+    },
+    "recovery_sampled": {
+      "type": "integer"
+    },
+    "recoveries_available": {
+      "type": "boolean"
+    },
+    "recoveries": {
+      "enabled": false,
+      "type": "object"
     }
   }
 }

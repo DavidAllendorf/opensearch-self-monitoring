@@ -12,6 +12,7 @@ import { DetailStats, MetricPanels, StatsStrip } from './metric_panels';
 import { PipelineDetail } from './pipeline_detail';
 import { NodeDetail } from './node_detail';
 import { logstashTotal } from '../logstash_totals';
+import { ShardActivity } from './shard_activity';
 
 const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines' };
 
@@ -22,7 +23,6 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
   const [minutes, setMinutes] = useState(15);
   const [paused, setPaused] = useState(false);
   const [refresh, setRefresh] = useState(0);
-  const [advanced, setAdvanced] = useState(false);
   const [loadedKey, setLoadedKey] = useState('');
   const kind = historyKind(nav);
   const requestKey = [kind, nav.entity || '', minutes].join(':');
@@ -32,7 +32,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
     window.location.hash = navigationHash(next);
   }
   useEffect(() => {
-    const changed = () => { setNav(parseNavigation(window.location.hash)); setAdvanced(false); };
+    const changed = () => { setNav(parseNavigation(window.location.hash)); };
     window.addEventListener('hashchange', changed);
     return () => window.removeEventListener('hashchange', changed);
   }, []);
@@ -105,7 +105,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
       </EuiTabs>
     </header>
     <div className="smContent">
-      {error && <><EuiCallOut title="Monitoring nicht verfügbar" color="danger" iconType="alert"><p>{error}</p></EuiCallOut><EuiSpacer /></>}
+      {error && <><EuiCallOut title="Monitoring nicht verfügbar" color="danger" iconType="alert"><p>{error}</p></EuiCallOut><EuiSpacer size="m" /></>}
       {!data && !error && <EuiLoadingSpinner size="xl" />}
       {data && !latest && <EuiCallOut title="Die erste Messung steht noch aus"><p>Das Server-Plugin muss genau einmal auf dem vorgesehenen Collector-Node des Clusters installiert sein. Die Erfassung startet unabhängig von dessen Node-Rolle automatisch.</p></EuiCallOut>}
       {latest && <>
@@ -120,8 +120,8 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
           <EuiTab key={view} isSelected={nav.view === view} onClick={() => navigate({ section: nav.section, view })}>
             {VIEW_NAMES[view]}{count(view) != null && <span className="smTabCount">{count(view)}</span>}
           </EuiTab>)}</EuiTabs>
-        <EuiSpacer />
-        {logstash && !!latest.logstash_failed_targets && <><EuiCallOut title="Logstash-Ziele teilweise nicht erreichbar" color="warning"><p>{latest.logstash_failed_targets} von {latest.logstash_targets} konfigurierten APIs liefern keine verwertbaren Daten. Erreichbare Instanzen werden weiterhin angezeigt.</p></EuiCallOut><EuiSpacer /></>}
+        <EuiSpacer size="m" />
+        {logstash && !!latest.logstash_failed_targets && <><EuiCallOut title="Logstash-Ziele teilweise nicht erreichbar" color="warning"><p>{latest.logstash_failed_targets} von {latest.logstash_targets} konfigurierten APIs liefern keine verwertbaren Daten. Erreichbare Instanzen werden weiterhin angezeigt.</p></EuiCallOut><EuiSpacer size="m" /></>}
         {logstash && !nodes.length ? <EuiCallOut title="Keine Logstash-Messwerte verfügbar" iconType="iInCircle">
           <p>Der Collector liest die in stack_monitoring.logstash.urls konfigurierten HTTP(S)-APIs. Ohne Konfiguration wird 127.0.0.1:9600 am Collector abgefragt. Für entfernte Server müssen deren Basis-URLs eingetragen werden. Zusätzliche API-Authentifizierung wird noch nicht unterstützt.</p>
         </EuiCallOut> : <>
@@ -131,25 +131,24 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
               <EuiTitle size="m"><h2>{title}</h2></EuiTitle>
               {selected && <p className="smMuted">{selected.node_name}{selected.roles?.length ? ' · ' + selected.roles.join(', ') : ''}{selected.version ? ' · Version ' + selected.version : ''}</p>}
             </div>
-            {(nav.view === 'overview' || nav.entity) && <EuiButtonEmpty size="s" onClick={() => setAdvanced(!advanced)}>{advanced ? 'Standardansicht' : 'Erweiterte Metriken'}</EuiButtonEmpty>}
           </div>
           <EuiSpacer size="m" />
           {nav.entity ? <>
             {!selected && !loading && <EuiCallOut title="Kein aktueller Messwert für diesen Eintrag" color="warning"><p>Der Eintrag ist im aktuellen Sample nicht vorhanden. Der Verlauf im gewählten Zeitraum bleibt abrufbar.</p></EuiCallOut>}
             {selected?.kind === 'node' ? <NodeDetail key={selected.node_id} node={selected} allocation={data!.allocationNode} indexMetrics={data!.indices}
               onIndex={index => navigate({ section: 'opensearch', view: 'indices', entity: index.index_uuid, label: index.index_name })}>
-              <DetailStats metric={selected} /><EuiSpacer />
-              {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind="node" advanced={advanced} />}
-              <EuiSpacer /><EuiPanel paddingSize="m"><EuiText size="s"><p>
+              <DetailStats metric={selected} /><EuiSpacer size="m" />
+              {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind="node" />}
+              <EuiSpacer size="m" /><EuiPanel paddingSize="m"><EuiText size="s"><p>
                 JVM Heap: {bytes(selected.heap_used_bytes)} / {bytes(selected.heap_max_bytes)} ·
                 Dateisystem frei: {bytes(selected.disk_available_bytes)} / {bytes(selected.disk_total_bytes)} ·
                 GC-Zeit seit Start: {number(selected.gc_time_ms, ' ms')} · Ablehnungen: {number(selected.rejected_total)}
               </p></EuiText></EuiPanel>
             </NodeDetail> : <>
             {selected && <DetailStats metric={selected} />}
-            <EuiSpacer />
-            {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind={kind} source={selected?.pipeline_source || (logstash ? 'logstash' : 'ingest')} advanced={advanced} />}
-            {selected?.kind === 'pipeline' && <><EuiSpacer /><PipelineDetail metric={selected} /></>}
+            <EuiSpacer size="m" />
+            {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind={kind} source={selected?.pipeline_source || (logstash ? 'logstash' : 'ingest')} />}
+            {selected?.kind === 'pipeline' && <><EuiSpacer size="m" /><PipelineDetail metric={selected} /></>}
             </>}
           </> : nav.view === 'overview' ? <>
             <StatsStrip values={logstash ? [
@@ -160,9 +159,10 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
               ['Nodes', number(latest.nodes)], ['Indizes', number(latest.indices)], ['Dokumente', number(latest.docs)],
               ['Primärdaten', bytes(latest.store_bytes)], ['Aktive Shards', number(latest.active_shards)], ['Nicht zugewiesen', number(latest.unassigned_shards)],
             ]} />
-            <EuiSpacer />
-            {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind={logstash ? 'logstash' : 'cluster'} advanced={advanced} />}
-            <EuiSpacer />
+            <EuiSpacer size="m" />
+            {loading ? <EuiLoadingSpinner size="l" /> : <MetricPanels points={data!.series} kind={logstash ? 'logstash' : 'cluster'} />}
+            {!logstash && <><EuiSpacer size="m" /><ShardActivity latest={latest} minutes={minutes} serverTime={data!.serverTime} /></>}
+            <EuiSpacer size="m" />
             <div className="smQuickLinks">{(logstash ? ['nodes', 'pipelines'] : ['nodes', 'indices', 'pipelines']).map(view =>
               <button key={view} className="smQuickLink" onClick={() => navigate({ section: nav.section, view: view as View })}>
                 <strong>{number(count(view as View))}</strong><span>{view === 'pipelines' && !logstash ? 'Ingest-Pipelines' : VIEW_NAMES[view as View]}</span><span>Details ansehen →</span>
@@ -175,7 +175,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
             {nav.view === 'indices' && latest.sampled_indices! < latest.indices! && <EuiText size="s"><p>Detailerfassung auf {latest.sampled_indices} von {latest.indices} Indizes begrenzt.</p></EuiText>}
           </EuiPanel>}
         </>}
-        <EuiSpacer />
+        <EuiSpacer size="m" />
         <EuiText size="xs"><p className="smFootnote">Primärdaten und Indexierungsrate ohne Monitoring-Indizes. Suchraten zählen Shard-Abfragen. Verarbeitungszeiten sind mittlere Arbeitszeiten, keine Ende-zu-Ende-Latenz. Nach Neustarts und bei fehlenden Samples bleiben Raten zunächst leer.</p></EuiText>
       </>}
     </div>

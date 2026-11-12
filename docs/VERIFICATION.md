@@ -1,10 +1,21 @@
 # Verifikation fuer OpenSearch 3.6.0
 
-Pluginversion 0.5.0 wurde gegen OpenSearch und OpenSearch Dashboards 3.6.0 gebaut.
+Pluginversion 0.6.0 wurde gegen OpenSearch und OpenSearch Dashboards 3.6.0 gebaut.
 Historische Ergebnisse stehen in VERIFICATION-3.9.md.
 
 - Java: Gradle-Tests und Plugin-ZIP gegen echte 3.6.0-Abhaengigkeiten.
-- Dashboard: elf Quelltests, TypeScript-Pruefung im 3.6.0-Quellbaum und offizieller Plugin-Helpers-Build mit Node 22.22.0.
+- Dashboard: 14 Quelltests, TypeScript-Pruefung im 3.6.0-Quellbaum und offizieller Plugin-Helpers-Build mit Node 22.22.0.
+- 0.6.0: Zusatzdiagramme fuer alle angebotenen Ansichten, Zeitfilter fuer DONE-
+  Recoveries und Erhaltung lange laufender Recoveries, Priorisierung/Begrenzung
+  der Recovery-Zeilen, Fortschritt ohne Dateinamen und ohne erfundene Translog-Werte.
+- Auf dem Zielserver: gespeicherte Recovery-Zuordnungen gegen die native Recovery-
+  API verglichen; lokale Logstash-Pipeline, Node-/Shard-Details, Anmeldung und
+  Filebeat-Logstash-OpenSearch-Zustellung erfolgreich, Cluster gruen.
+- Browser 0.6.0: Cluster-Uebersicht von vier auf zehn Diagramme erweitert und
+  wieder eingeklappt; Logstash-Uebersicht erhaelt ihr Zusatzdiagramm. In der
+  Node-Shard-Tabelle wird kein wirkungsloser Diagrammschalter mehr angeboten.
+  Recovery-Filter mit korrektem Leerzustand sowie kompakte, mehrzeilige Zellen
+  und die gesamte Standardansicht visuell geprueft.
 - Neue Tests pruefen explizite HTTP(S)-Basis-URLs, die Ablehnung von URL-Zugangsdaten,
   Gesamt-Durchsatz mehrerer Logstash-Instanzen und fehlende Werte statt falscher Nullen.
 - Native 0.5.0-Pruefung ohne Produktionsneustart: separater Zweiknotencluster,

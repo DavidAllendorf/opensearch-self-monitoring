@@ -8,7 +8,7 @@ nativen OpenSearch-/Dashboards-Paar. Danach ein Git-Tag setzen und dieselben
 geprueften ZIPs ausliefern. Die mitgelieferte GitHub-Actions-Datei baut beide
 Artefakte; ein automatisches Deployment auf Benutzer-Server findet nicht statt.
 
-Der Pluginstand ist 0.5.0, die Plattform-Kompatibilitaet exakt 3.6.0.
+Der Pluginstand ist 0.6.0, die Plattform-Kompatibilitaet exakt 3.6.0.
 Der Installer meldet eine ausgehende Socket-Berechtigung fuer frei konfigurierbare
 Logstash-Hosts und -Ports. Der Code fragt nur die administrativ konfigurierten
 HTTP(S)-Basis-URLs ab. Dies oeffnet keinen eingehenden Port und aendert keine Firewall.
@@ -31,7 +31,7 @@ Plugin-Installation neu gestartet werden; die uebrigen OpenSearch-Nodes nicht.
 
 ```sh
 systemctl stop opensearch
-/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.5.0.zip
+/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.6.0.zip
 systemctl start opensearch
 
 systemctl stop opensearch-dashboards

@@ -1,5 +1,13 @@
 # Native Auslieferung auf 3.6.0
 
+## Produktionsstand 0.6.0
+
+Am 12.11.2026 wurden beide Plugins auf 192.168.178.40 auf 0.6.0 aktualisiert.
+OpenSearch/Dashboards bleiben auf 3.6.0. Neu sind Shard Activity, eine kompaktere
+Standardansicht und funktionierende Zusatzdiagramme auch in der Cluster-Uebersicht.
+Die neuen Recovery-/Shard-Felder wurden additiv im vorhandenen Tagesindex ergaenzt;
+bestehende Monitoring-Daten bleiben erhalten. 0.5.0 bleibt als Plugin-Rollback erhalten.
+
 ## Release 0.5.0 fuer die eigene Installation
 
 0.5.0 wird als Paket fuer die einmalige Installation auf einem dedizierten

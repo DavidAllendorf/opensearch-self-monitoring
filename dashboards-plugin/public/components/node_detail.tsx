@@ -75,7 +75,7 @@ export function NodeDetail({ node, allocation, indexMetrics, onIndex, children }
         {tab === 'indices' ? <>
           <EuiText size="s"><p>Nur Indizes mit zugewiesenen Shard-Kopien auf {node.node_name}. Ein Klick auf den Index zeigt seine lokalen Shards.</p></EuiText>
           <EuiSpacer size="m" />
-          <EuiInMemoryTable items={indices} columns={indexColumns} sorting
+          <EuiInMemoryTable compressed items={indices} columns={indexColumns} sorting
             pagination={{ pageIndex: Math.min(indexPage.index, Math.max(0, Math.ceil(indices.length / indexPage.size) - 1)), pageSize: indexPage.size, pageSizeOptions: [10, 25, 100] }}
             onTableChange={({ page }: { page?: { index: number; size: number } }) => { if (page) setIndexPage(page); }}
             search={{ box: { incremental: true, placeholder: 'Indizes auf diesem Node suchen …' }, onChange: () => { setIndexPage(page => ({ ...page, index: 0 })); return true; } }}
@@ -92,7 +92,7 @@ export function NodeDetail({ node, allocation, indexMetrics, onIndex, children }
           <EuiSpacer />
           <EuiText size="s"><p>{number(filtered.length)} von {number(rows.length)} erfassten Shard-Kopien auf {node.node_name}.</p></EuiText>
           <EuiSpacer size="m" />
-          <EuiInMemoryTable items={filtered} columns={shardColumns} sorting
+          <EuiInMemoryTable compressed items={filtered} columns={shardColumns} sorting
             pagination={{ pageIndex: Math.min(shardPage.index, Math.max(0, Math.ceil(filtered.length / shardPage.size) - 1)), pageSize: shardPage.size, pageSizeOptions: [10, 25, 100] }}
             onTableChange={({ page }: { page?: { index: number; size: number } }) => { if (page) setShardPage(page); }}
             message="Keine Shard-Kopien für diese Filter." />

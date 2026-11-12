@@ -147,3 +147,24 @@ Alte Messungen ohne dieses Feld bleiben lesbar und werden nicht mit null Shards
 verwechselt. Der Zeitraum beeinflusst die Diagramme; Routing-Tabellen zeigen den
 angegebenen aktuellen Sample-Zeitpunkt. Paginierung und Filter bleiben bei
 automatischer Aktualisierung erhalten; eine neue Suchanfrage beginnt auf Seite 1.
+
+## Shard Activity (ab 0.6.0)
+
+Der Collector nutzt die native Recovery-Aktion fuer offene Indizes einschliesslich
+versteckter Indizes, ohne einzelne Dateinamen anzufordern. Das Cluster-Sample
+speichert bis zu 200 Recovery-Zeilen als nicht indiziertes Objektarray. Laufende
+Recoveries werden vor abgeschlossenen einsortiert. Abgeschlossene Eintraege sind
+auf den Aufbewahrungszeitraum begrenzt. Die UI zeigt aktive Eintraege auch dann,
+wenn deren Start vor dem ausgewaehlten Zeitraum liegt; DONE-Eintraege werden
+anhand ihres Abschlusszeitpunkts gefiltert. Die API liefert nur die letzte
+Recovery je aktueller Shard-Kopie, keine vollstaendige Ereignishistorie.
+
+Datei-/Byte-Fortschritt bezieht sich auf tatsaechlich zu uebertragende Daten;
+wiederverwendete Dateien werden separat ausgewiesen. Unbekannte Translog-Gesamtwerte
+bleiben leer. Teilweise fehlgeschlagene Recovery-Antworten werden als nicht
+verfuegbar markiert, waehrend die uebrigen Monitoring-Metriken weiterlaufen.
+
+Der Diagrammkatalog trennt Standard- und Zusatzdiagramme fuer jede Ansicht.
+Der Schalter liegt bei den Diagrammen und erscheint nicht in reinen Tabellen-
+Untertabs. So bleibt die Standardansicht kompakt und der Schalter hat immer
+eine sichtbare Wirkung, auch in der Cluster-Uebersicht.
