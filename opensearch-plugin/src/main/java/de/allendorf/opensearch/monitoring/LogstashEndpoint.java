@@ -10,18 +10,27 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
 
-/** Optional local-only discovery. No configurable URL, credentials, redirects or remote proxy. */
-final class LocalLogstash {
+/** Read only explicitly configured Logstash APIs; no redirects, inline credentials or browser proxy. */
+final class LogstashEndpoint {
     private static final int MAX_BYTES = 4 * 1024 * 1024;
-    private LocalLogstash() {}
+    private LogstashEndpoint() {}
+
+    static String validate(String baseUrl) {
+        var uri = URI.create(baseUrl);
+        if (!("http".equals(uri.getScheme()) || "https".equals(uri.getScheme())) || uri.getHost() == null
+            || uri.getRawUserInfo() != null || uri.getRawQuery() != null || uri.getRawFragment() != null) {
+            throw new IllegalArgumentException("Logstash URLs must be HTTP(S) base URLs without credentials, query or fragment");
+        }
+        return baseUrl.replaceAll("/+$", "");
+    }
 
     @SuppressWarnings("removal")
-    static Map<String, Object> read() {
+    static Map<String, Object> read(String baseUrl) {
         SpecialPermission.check();
         return AccessController.doPrivileged((PrivilegedAction<Map<String, Object>>) () -> {
             HttpURLConnection connection = null;
             try {
-                connection = (HttpURLConnection) URI.create("http://127.0.0.1:9600/_node/stats").toURL().openConnection();
+                connection = (HttpURLConnection) URI.create(baseUrl + "/_node/stats").toURL().openConnection();
                 connection.setConnectTimeout(1000);
                 connection.setReadTimeout(1500);
                 connection.setInstanceFollowRedirects(false);
@@ -32,7 +41,7 @@ final class LocalLogstash {
                     return XContentHelper.convertToMap(JsonXContent.jsonXContent, bytes, 0, bytes.length, false);
                 }
             } catch (IOException | RuntimeException unavailable) {
-                return null; // A missing local Logstash must never interrupt OpenSearch collection.
+                return null; // An unavailable Logstash must never interrupt OpenSearch collection.
             } finally {
                 if (connection != null) connection.disconnect();
             }

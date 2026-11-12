@@ -8,22 +8,30 @@ nativen OpenSearch-/Dashboards-Paar. Danach ein Git-Tag setzen und dieselben
 geprueften ZIPs ausliefern. Die mitgelieferte GitHub-Actions-Datei baut beide
 Artefakte; ein automatisches Deployment auf Benutzer-Server findet nicht statt.
 
-Der Pluginstand ist 0.4.0, die Plattform-Kompatibilitaet exakt 3.6.0.
-Der Installer meldet die neue Socket-Berechtigung fuer 127.0.0.1:9600.
-Sie gehoert zur optionalen lokalen Logstash-Erfassung, nicht zu einer Freigabe
-des Logstash-Ports ins Netzwerk. Auf dem Ziel muss dessen lokale Monitoring-API
-erreichbar sein; anderenfalls bleibt die Logstash-Ansicht ohne aktuelle Daten.
+Der Pluginstand ist 0.5.0, die Plattform-Kompatibilitaet exakt 3.6.0.
+Der Installer meldet eine ausgehende Socket-Berechtigung fuer frei konfigurierbare
+Logstash-Hosts und -Ports. Der Code fragt nur die administrativ konfigurierten
+HTTP(S)-Basis-URLs ab. Dies oeffnet keinen eingehenden Port und aendert keine Firewall.
 Das ZIP nicht fuer andere Plattformversionen umbenennen oder dessen Manifest
 manuell passend machen.
 
 ## Native Installation
 
-ZIPs auf den Zielserver kopieren. Mit administrativen Rechten, auf jedem
-OpenSearch-Knoten beziehungsweise jeder Dashboards-Instanz:
+Das Java-Plugin **genau einmal** auf dem vorgesehenen Collector-Node installieren.
+Er ist ein normaler OpenSearch-Node im bestehenden Cluster, empfohlen
+`node.roles: []` (coordinating-only). Die Erfassung funktioniert auch mit anderen
+Rollen; eine Cluster-Manager-Rolle ist nicht erforderlich. Clustername, Discovery
+und Transport-TLS muessen zum bestehenden Cluster passen. Auf dem neuen Collector
+keinen separaten Single-Node-Cluster initialisieren und keine erneute
+`cluster.initial_cluster_manager_nodes`-Bootstrap-Konfiguration setzen.
+
+Das Dashboard-Plugin auf **allen OpenSearch-Dashboards-Instanzen** des Clusters
+installieren. Nur der Collector und die Dashboards-Instanzen muessen fuer die
+Plugin-Installation neu gestartet werden; die uebrigen OpenSearch-Nodes nicht.
 
 ```sh
 systemctl stop opensearch
-/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.4.0.zip
+/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.5.0.zip
 systemctl start opensearch
 
 systemctl stop opensearch-dashboards
@@ -31,8 +39,10 @@ systemctl stop opensearch-dashboards
 systemctl start opensearch-dashboards
 ```
 
-Eine Einzelknoteninstallation hat waehrend des OpenSearch-Neustarts eine
-Unterbrechung. In einem groesseren Cluster kontrolliert nacheinander ausrollen.
+Ein dedizierter Collector traegt keine Datenshards und nimmt nicht an Manager-Wahlen
+teil. Sein Neustart unterbricht die Erfassung, nicht den Betrieb der anderen Nodes.
+Bei einer kombinierten Einzelknoteninstallation startet dagegen weiterhin der
+einzige OpenSearch-Prozess neu. Dashboards-Updates nacheinander ausrollen.
 Nach einem Plugin-Update den Browser vollstaendig neu laden (Strg+F5), weil
 Dashboards-Bundlepfade zwischen Pluginversionen gleich bleiben koennen.
 Erfassung startet automatisch. Datenquelle und Indexmuster muessen nicht
@@ -44,7 +54,7 @@ spaeter ueber dessen `opensearch.yml` verteilt werden.
 
 ## Security
 
-Die Erfassung arbeitet als interner NodeClient auf dem Cluster-Manager, ohne
+Die Erfassung arbeitet als interner NodeClient auf dem Collector-Node, ohne
 Benutzer-Impersonation und ohne gespeichertes Admin-Passwort. Das benoetigt
 Vertrauen in den installierten Java-Code wie bei anderen Server-Plugins.
 
@@ -70,6 +80,18 @@ zugewiesen. Metriken enthalten Cluster-, Knoten- und Indexnamen und koennen
 infrastrukturelle Informationen offenlegen. Keine anonymen Leserechte vergeben.
 
 ## Update und Rueckbau
+
+Genau einen aktiven Collector betreiben. Es gibt keine automatische Wahl,
+Leader-Sperre oder Ausfalluebernahme. Bei einem Collector-Ausfall fehlen neue
+Samples bis zu dessen Rueckkehr; die vorhandenen Metriken bleiben gespeichert.
+
+Migration von 0.4.0 oder aelter: den bisherigen Collector vor Aktivierung des
+neuen beenden/deaktivieren. Diese alten Versionen haben nur eine statische
+`stack_monitoring.enabled`-Einstellung und koennen nicht im laufenden Prozess
+entladen werden. Liegt die alte Installation auf einem Manager, erfordert ihr
+Rueckbau daher gegebenenfalls einmalig dessen kontrollierten Neustart. Ein neuer
+Arbeitscluster ohne alte Installation braucht ausschliesslich den neuen Collector.
+Danach betreffen Plugin-Updates nur diesen Collector und die Dashboards-Instanzen.
 
 Bei einem Update zuerst Kompatibilitaet und Archiv-Pruefsummen pruefen,
 Plugin bei gestopptem Dienst entfernen und das neue ZIP installieren. Die
@@ -101,9 +123,9 @@ curl --cacert /etc/opensearch/certs/root-ca.pem -u admin \
   'https://localhost:9200/.stack-monitoring-*/_count?expand_wildcards=open,hidden'
 ```
 
-- Keine Daten: Plugin auf dem gewaehlten Cluster-Manager installiert/aktiviert?
+- Keine Daten: Ist genau ein Collector installiert, aktiviert und Mitglied des Clusters?
 - HTTP 403: Leserechte des angemeldeten Nutzers auf die versteckten Indizes pruefen.
-- Alte Daten: Cluster-Manager, Logs, Schreibblockaden und freien Speicher pruefen.
+- Alte Daten: Collector, Cluster-Verbindung, Logs, Schreibblockaden und freien Speicher pruefen.
 - Ein Index fehlt: Erfassungsgrenze beachten; eigene Monitoring-Indizes sind ausgeschlossen.
 - Grosse Cluster: Intervall erhoehen und Last messen. Jeder Poll fragt Cluster-Stats
   ab und schreibt etwa `1 + Knoten + min(Indizes, Limit)` Dokumente.

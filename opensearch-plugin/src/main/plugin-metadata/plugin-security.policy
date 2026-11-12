@@ -1,4 +1,4 @@
 grant {
-    // The optional collector may only query the co-located Logstash monitoring API.
-    permission java.net.SocketPermission "127.0.0.1:9600", "connect,resolve";
+    // Target hosts/ports come from the administrator's static Logstash URL list.
+    permission java.net.SocketPermission "*", "connect,resolve";
 };

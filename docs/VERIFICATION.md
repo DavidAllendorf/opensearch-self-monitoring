@@ -1,10 +1,23 @@
 # Verifikation fuer OpenSearch 3.6.0
 
-Pluginversion 0.4.0 wurde gegen OpenSearch und OpenSearch Dashboards 3.6.0 gebaut.
+Pluginversion 0.5.0 wurde gegen OpenSearch und OpenSearch Dashboards 3.6.0 gebaut.
 Historische Ergebnisse stehen in VERIFICATION-3.9.md.
 
 - Java: Gradle-Tests und Plugin-ZIP gegen echte 3.6.0-Abhaengigkeiten.
-- Dashboard: neun Quelltests, TypeScript-Pruefung im 3.6.0-Quellbaum und offizieller Plugin-Helpers-Build mit Node 22.22.0.
+- Dashboard: elf Quelltests, TypeScript-Pruefung im 3.6.0-Quellbaum und offizieller Plugin-Helpers-Build mit Node 22.22.0.
+- Neue Tests pruefen explizite HTTP(S)-Basis-URLs, die Ablehnung von URL-Zugangsdaten,
+  Gesamt-Durchsatz mehrerer Logstash-Instanzen und fehlende Werte statt falscher Nullen.
+- Native 0.5.0-Pruefung ohne Produktionsneustart: separater Zweiknotencluster,
+  Manager/Data-Node ohne Monitoring-Plugin und coordinating-only Collector mit
+  Plugin. Vollstaendige Cluster-, Node- und Shard-Metriken werden fortlaufend erfasst.
+- Zwei simulierte Logstash-APIs auf abweichenden Ports, eine ueber HTTP und eine
+  ueber HTTPS mit vertrauter Test-CA. Eine Alias-URL derselben UUID wird nicht
+  doppelt erfasst. Weiterleitung und unerreichbares Ziel werden als Fehler
+  gezaehlt, ohne die anderen Ziele oder OpenSearch-Metriken zu unterbrechen.
+- Separate native Dashboards-Instanz mit 0.5.0, verbunden ausschliesslich mit
+  dem coordinating-only Collector: Login, zwei Logstash-Instanzen, Teilfehler,
+  korrekter Gesamt-Durchsatz (etwa 9 Events/s statt 18 bei zwei Samples im
+  Zeitbucket) und bestehende Node-/Shard-Detail-API erfolgreich geprueft.
 - Shard-Tests: Primary/Replica, Relocation-Quelle und -Ziel, vollstaendige Zaehler
   bei begrenzten Zeilen, lokale Indexsummen, fehlende Stats und Index-UUID-Identitaet.
 - 0.4.0 auf dem nativen Ziel: Node-Snapshot gegen das echte Cluster-Routing

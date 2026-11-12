@@ -11,6 +11,7 @@ import { EntityTable } from './entity_table';
 import { DetailStats, MetricPanels, StatsStrip } from './metric_panels';
 import { PipelineDetail } from './pipeline_detail';
 import { NodeDetail } from './node_detail';
+import { logstashTotal } from '../logstash_totals';
 
 const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines' };
 
@@ -106,7 +107,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
     <div className="smContent">
       {error && <><EuiCallOut title="Monitoring nicht verfügbar" color="danger" iconType="alert"><p>{error}</p></EuiCallOut><EuiSpacer /></>}
       {!data && !error && <EuiLoadingSpinner size="xl" />}
-      {data && !latest && <EuiCallOut title="Die erste Messung steht noch aus"><p>Das Server-Plugin muss auf dem Cluster-Manager installiert sein. Die Erfassung startet automatisch.</p></EuiCallOut>}
+      {data && !latest && <EuiCallOut title="Die erste Messung steht noch aus"><p>Das Server-Plugin muss genau einmal auf dem vorgesehenen Collector-Node des Clusters installiert sein. Die Erfassung startet unabhängig von dessen Node-Rolle automatisch.</p></EuiCallOut>}
       {latest && <>
         <div className="smStatusLine">
           <strong>{logstash ? 'Logstash' : 'OpenSearch'}</strong>
@@ -120,8 +121,9 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
             {VIEW_NAMES[view]}{count(view) != null && <span className="smTabCount">{count(view)}</span>}
           </EuiTab>)}</EuiTabs>
         <EuiSpacer />
-        {logstash && !nodes.length ? <EuiCallOut title="Kein lokales Logstash erreichbar" iconType="iInCircle">
-          <p>Die automatische Erfassung liest die lokale Logstash-Monitoring-API auf 127.0.0.1:9600 am gewählten Cluster-Manager. Eine eigene Logstash-Instanz auf anderen Hosts wird nicht automatisch erkannt.</p>
+        {logstash && !!latest.logstash_failed_targets && <><EuiCallOut title="Logstash-Ziele teilweise nicht erreichbar" color="warning"><p>{latest.logstash_failed_targets} von {latest.logstash_targets} konfigurierten APIs liefern keine verwertbaren Daten. Erreichbare Instanzen werden weiterhin angezeigt.</p></EuiCallOut><EuiSpacer /></>}
+        {logstash && !nodes.length ? <EuiCallOut title="Keine Logstash-Messwerte verfügbar" iconType="iInCircle">
+          <p>Der Collector liest die in stack_monitoring.logstash.urls konfigurierten HTTP(S)-APIs. Ohne Konfiguration wird 127.0.0.1:9600 am Collector abgefragt. Für entfernte Server müssen deren Basis-URLs eingetragen werden. Zusätzliche API-Authentifizierung wird noch nicht unterstützt.</p>
         </EuiCallOut> : <>
           <div className="smSectionHeading">
             <div>
@@ -152,8 +154,8 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
           </> : nav.view === 'overview' ? <>
             <StatsStrip values={logstash ? [
               ['Nodes', number(nodes.length)], ['Pipelines', number(pipelines.length)],
-              ['Events rein / s', number(nodes[0]?.events_in_rate)], ['Events raus / s', number(nodes[0]?.events_out_rate)],
-              ['CPU', number(nodes[0]?.cpu_percent, ' %')], ['JVM Heap', number(nodes[0]?.heap_percent, ' %')],
+              ['Events rein / s', number(logstashTotal(nodes, 'events_in_rate'))], ['Events raus / s', number(logstashTotal(nodes, 'events_out_rate'))],
+              ['CPU Ø', number(logstashTotal(nodes, 'cpu_percent', true), ' %')], ['JVM Heap Ø', number(logstashTotal(nodes, 'heap_percent', true), ' %')],
             ] : [
               ['Nodes', number(latest.nodes)], ['Indizes', number(latest.indices)], ['Dokumente', number(latest.docs)],
               ['Primärdaten', bytes(latest.store_bytes)], ['Aktive Shards', number(latest.active_shards)], ['Nicht zugewiesen', number(latest.unassigned_shards)],

@@ -9,11 +9,13 @@ public final class MonitoringSettings {
     public static final String EXECUTOR = "stack_monitoring";
     public static final Setting<Boolean> ENABLED = Setting.boolSetting("stack_monitoring.enabled", true, Setting.Property.NodeScope);
     public static final Setting<Boolean> LOGSTASH_ENABLED = Setting.boolSetting("stack_monitoring.logstash.enabled", true, Setting.Property.NodeScope);
+    public static final Setting<List<String>> LOGSTASH_URLS = Setting.listSetting("stack_monitoring.logstash.urls",
+        List.of("http://127.0.0.1:9600"), LogstashEndpoint::validate, Setting.Property.NodeScope);
     public static final Setting<TimeValue> INTERVAL = Setting.timeSetting("stack_monitoring.interval", TimeValue.timeValueSeconds(10), TimeValue.timeValueSeconds(5), Setting.Property.NodeScope);
     public static final Setting<TimeValue> TIMEOUT = Setting.timeSetting("stack_monitoring.request_timeout", TimeValue.timeValueSeconds(5), TimeValue.timeValueSeconds(1), Setting.Property.NodeScope);
     public static final Setting<Integer> RETENTION = Setting.intSetting("stack_monitoring.retention_days", 7, 1, 365, Setting.Property.NodeScope);
     public static final Setting<Integer> MAX_INDICES = Setting.intSetting("stack_monitoring.max_indices", 1000, 1, 10000, Setting.Property.NodeScope);
 
     private MonitoringSettings() {}
-    public static List<Setting<?>> all() { return List.of(ENABLED, LOGSTASH_ENABLED, INTERVAL, TIMEOUT, RETENTION, MAX_INDICES); }
+    public static List<Setting<?>> all() { return List.of(ENABLED, LOGSTASH_ENABLED, LOGSTASH_URLS, INTERVAL, TIMEOUT, RETENTION, MAX_INDICES); }
 }

@@ -37,6 +37,7 @@ final class MetricsCollector extends AbstractLifecycleComponent {
     private final ThreadPool threads;
     private final Settings settings;
     private final TimeValue timeout;
+    private final List<String> logstashUrls;
     private final Map<String, Map<String, Object>> previous = new HashMap<>();
     private Scheduler.Cancellable schedule;
     private volatile boolean stopped;
@@ -49,6 +50,8 @@ final class MetricsCollector extends AbstractLifecycleComponent {
         this.threads = threads;
         this.settings = settings;
         this.timeout = MonitoringSettings.TIMEOUT.get(settings);
+        this.logstashUrls = MonitoringSettings.LOGSTASH_URLS.get(settings).stream().distinct().toList();
+        if (logstashUrls.size() > 16) throw new IllegalArgumentException("At most 16 Logstash URLs may be configured");
     }
 
     @Override protected void doStart() {
@@ -63,10 +66,6 @@ final class MetricsCollector extends AbstractLifecycleComponent {
 
     private void poll() {
         if (stopped) return;
-        if (!cluster.state().nodes().isLocalNodeElectedClusterManager()) {
-            previous.clear();
-            return;
-        }
         // Do not inherit a browser user's identity into background collection.
         // The internal NodeClient is authenticated as a local node by OpenSearch Security.
         try (ThreadContext.StoredContext ignored = threads.getThreadContext().stashContext()) {
@@ -114,9 +113,16 @@ final class MetricsCollector extends AbstractLifecycleComponent {
 
         var summary = MetricDocuments.base("cluster", now, clusterId, clusterName);
         if (MonitoringSettings.LOGSTASH_ENABLED.get(settings)) {
-            var logstash = LocalLogstash.read();
-            summary.put("logstash_available", logstash != null);
-            if (logstash != null) documents.addAll(PipelineDocuments.logstash(logstash, now, clusterId, clusterName));
+            var seen = new java.util.HashSet<String>();
+            int failed = 0;
+            for (String url : logstashUrls) {
+                var logstash = LogstashEndpoint.read(url);
+                if (logstash == null || !(logstash.get("id") instanceof String id) || id.isBlank()) { failed++; continue; }
+                if (seen.add(id)) documents.addAll(PipelineDocuments.logstash(logstash, now, clusterId, clusterName));
+            }
+            summary.put("logstash_available", !seen.isEmpty());
+            summary.put("logstash_targets", logstashUrls.size());
+            summary.put("logstash_failed_targets", failed);
         }
         summary.put("status", health.getStatus().toString().toLowerCase(java.util.Locale.ROOT));
         summary.put("nodes", health.getNumberOfNodes());
@@ -147,8 +153,8 @@ final class MetricsCollector extends AbstractLifecycleComponent {
             MetricDocuments.rates(doc, previous.get(key));
             next.put(key, doc);
         }
-        // Leadership can change while stats requests are in flight.
-        if (stopped || !cluster.state().nodes().isLocalNodeElectedClusterManager()) return;
+        // The one explicitly installed collector runs independently of node roles or manager elections.
+        if (stopped) return;
         String index = MonitoringSettings.INDEX_PREFIX + MetricMath.utcDate(now);
         ensureIndex(index);
         BulkRequest bulk = new BulkRequest().timeout(timeout);

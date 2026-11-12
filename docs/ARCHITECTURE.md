@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart LR
-  A[Gewaehlter Cluster-Manager] --> B[Health / Nodes Stats / Indices Stats]
+  A[Ein dedizierter Collector-Node] --> B[Clusterweite Health / Nodes Stats / Indices Stats]
   B --> C[Normalisieren und Raten berechnen]
   C --> D[Bulk: versteckte Tagesindizes]
   E[Angemeldeter Dashboards-Nutzer] --> F[Plugin-Route: asCurrentUser]
@@ -14,10 +14,12 @@ flowchart LR
 
 Ein eigener begrenzter Threadpool fuehrt jeweils eine Erfassung aus. Es gibt
 keine ueberlappenden Polls und keine Arbeit auf Transport- oder Scheduler-Threads.
-Der Collector prueft die Cluster-Manager-Rolle vor der Erfassung und nochmals
-vor dem Schreiben. Bei einem Rollenwechsel ist die naechste Rate zunaechst leer.
-Das ist keine verteilte Exactly-once-Garantie; waehrend eines Fuehrungswechsels
-koennen sehr nahe Samples oder eine Luecke entstehen.
+Der Collector arbeitet auf dem einen Node, auf dem das Plugin aktiv installiert
+ist. Er ist unabhaengig von Node-Rollen und Manager-Wahlen. Alle Abfragen bleiben
+clusterweit; der interne NodeClient nutzt dafuer Standardaktionen, die kein
+Monitoring-Plugin auf den anderen Nodes voraussetzen. Es gibt keine verteilte
+Collector-Wahl oder Sperre. Mehrere aktive Installationen erzeugen parallele Samples.
+Ein Neustart des Collectors verwirft die vorherige Ratenbasis.
 
 Anfragen und Schreibvorgaenge haben ein Timeout. Teilweise fehlgeschlagene
 Nodes-/Shard-Stats werden nicht als vollstaendige Gesamtwerte ausgegeben.
@@ -89,14 +91,24 @@ benoetigt. Langfristige Downsampling-/Rollup-Stufen sind nicht implementiert.
 
 OpenSearch liefert Ingest-Statistiken in Nodes Stats. Jede Pipeline wird pro
 Node getrennt gespeichert, damit kumulative Zaehler eindeutig bleiben.
-Logstash wird optional ueber die feste Loopback-Adresse 127.0.0.1:9600 gelesen.
-Die Plugin-Policy erlaubt nur diese ausgehende Socket-Verbindung. Es gibt keine
-frei waehlbare URL, Weiterleitungen, Zugangsdaten oder gespeicherte Pipeline-Konfiguration.
+Logstash wird optional ueber maximal 16 explizite Basis-URLs aus der statischen
+Einstellung stack_monitoring.logstash.urls gelesen. Default ist 127.0.0.1:9600.
+Die Plugin-Policy erlaubt ausgehende Socket-Verbindungen zu diesen frei
+konfigurierbaren Hosts/Ports. Weiterleitungen, Zugangsdaten in URLs sowie Query-
+und Fragmentteile werden nicht akzeptiert. Pipeline-Konfiguration wird nicht gespeichert.
 Connect-/Read-Timeouts sind 1/1,5 Sekunden; Antworten sind auf 4 MiB begrenzt.
-Ein nicht erreichbares Logstash blockiert keine OpenSearch-Metriken und wird
-ueber logstash_available sichtbar. Nur explizit ausgewaehlte Metrikfelder werden gespeichert.
+Die Abfragen laufen begrenzt nacheinander im Collector-Worker; langsame Ziele
+verlaengern die reale Sample-Periode. TLS prueft Zertifikat/Hostname ueber den
+JVM-Truststore. Zusaetzliche API-Authentifizierung ist noch nicht implementiert.
+Fehlgeschlagene Ziele werden mit logstash_failed_targets/logstash_targets erfasst.
+Erreichbare Instanzen und OpenSearch werden weiterhin gespeichert. Mehrere URLs
+derselben Logstash-UUID werden innerhalb eines Samples zusammengefuehrt.
+Der aktuelle Gesamt-Durchsatz summiert die erreichbaren Instanzen. In
+History-Buckets wird erst je Node gemittelt und anschliessend ueber Nodes addiert;
+mehrere Samples pro Bucket vervielfachen dadurch keine Rate. Leere Buckets und
+fehlende Raten bleiben leer. CPU/Heap in der Logstash-Uebersicht sind Node-Mittelwerte.
 
-Maximal 1.000 Ingest-Pipelines je Node und 1.000 lokale Logstash-Pipelines,
+Maximal 1.000 Ingest-Pipelines je Node und 1.000 Pipelines je Logstash-Instanz,
 mit bis zu 200 Prozessor-/Plugin-Metriken je Pipeline. Diese Komponenten bleiben
 in _source; das Mapping indiziert ihre beliebigen Namen nicht (enabled: false).
 Die API liefert maximal 10.000 Pipeline-Zeilen je Sample.
@@ -113,7 +125,7 @@ Detailseiten verwenden URL-Hashes und unterstuetzen Browser-Zurueck und Direktli
 ## Shards und Indizes eines Nodes (ab 0.4.0)
 
 Node-Dokumente enthalten einen Routing-Snapshot in `allocations` (nicht separat
-indiziert). Quelle ist der lokale ClusterState des gewaehlten Cluster-Managers.
+indiziert). Quelle ist die lokale ClusterState-Kopie des Collector-Nodes.
 Erfasst werden alle dem Node zugeordneten Kopien einschliesslich System- und
 Monitoring-Indizes. Nicht zugewiesene Shards werden keinem Node zugerechnet.
 Bei Relocation erscheinen Quelle und initialisierendes Ziel jeweils auf ihrem

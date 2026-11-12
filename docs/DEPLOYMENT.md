@@ -1,5 +1,26 @@
 # Native Auslieferung auf 3.6.0
 
+## Release 0.5.0 fuer die eigene Installation
+
+0.5.0 wird als Paket fuer die einmalige Installation auf einem dedizierten
+Collector-Node bereitgestellt. Dieser Node muss dem ueberwachten Cluster angehoeren;
+seine Rolle ist frei waehlbar, empfohlen ist `node.roles: []` (coordinating-only).
+Andere OpenSearch-Nodes brauchen das Java-Plugin nicht. Das Dashboard-Plugin wird
+auf allen Dashboards-Instanzen dieses Clusters installiert. Installation und Updates
+erfordern nur deren jeweilige Neustarts. Details und Umzugshinweise: DELIVERY.md.
+
+Mehrere lokale oder entfernte Logstash-Instanzen werden mit
+`stack_monitoring.logstash.urls` explizit konfiguriert. Die Authentifizierung der
+Arbeitsumgebung ist noch offen; zusaetzliche API-Authentifizierung ist in 0.5.0
+nicht implementiert. HTTPS mit regulaerer Zertifikatspruefung wird unterstuetzt.
+
+Der produktive Server 192.168.178.40 bleibt waehrend Entwicklung und Test auf 0.4.0.
+Fuer diesen Umbau wurde kein produktiver OpenSearch- oder Dashboard-Neustart
+ausgefuehrt. 0.5.0 wird mit separaten nativen Testprozessen geprueft und als ZIPs
+ausgeliefert; es wird nicht automatisch in der Arbeitsumgebung installiert.
+
+## Bisheriger Produktionsstand 0.4.0
+
 Ziel: 192.168.178.40, OpenSearch und OpenSearch Dashboards 3.6.0, Pluginversion 0.4.0.
 Installation ohne Container.
 

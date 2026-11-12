@@ -207,6 +207,12 @@
     "allocations": {
       "type": "object",
       "enabled": false
+    },
+    "logstash_targets": {
+      "type": "integer"
+    },
+    "logstash_failed_targets": {
+      "type": "integer"
     }
   }
 }

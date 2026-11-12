@@ -14,6 +14,15 @@ Stats, `MetricsCollector` steuert den Ablauf. Im Frontend sind Registrierung,
 Abfragen, Formatierung, Diagramme und Ansicht getrennt. Es gibt keine eigenen
 Laufzeitbibliotheken im Server-Plugin und keine zusaetzliche Diagrammbibliothek.
 
+Der native Integrationstest fuer die Collector-Architektur braucht zwei Nodes
+eines separaten Testclusters: einen Manager/Data-Node ohne Monitoring-Plugin und
+einen coordinating-only Node mit dem Plugin. So wird eine versehentliche neue
+Abhaengigkeit von der Manager-Rolle sichtbar. Dazu HTTP(S)-Logstash-APIs mit
+verschiedenen UUIDs und definierten Event-Raten bereitstellen; Alias-URL,
+Weiterleitung und nicht erreichbares Ziel mitpruefen. In der Dashboards-API muss
+der Durchsatz ueber Nodes addiert werden, ohne mehrere Samples je Zeitbucket
+mehrfach zu zaehlen. Produktions-Nodes fuer diesen Test nicht neu starten.
+
 ## OpenSearch-Plugin bauen
 
 JDK 21 und ein gesetztes `JAVA_HOME` reichen. Der Wrapper ist versioniert:
@@ -22,7 +31,7 @@ JDK 21 und ein gesetztes `JAVA_HOME` reichen. Der Wrapper ist versioniert:
 ./gradlew :opensearch-plugin:test :opensearch-plugin:pluginZip
 ```
 
-Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.4.0.zip`.
+Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.5.0.zip`.
 Unter Windows `gradlew.bat` verwenden. `gradle.properties` legt die beiden
 Versionsnummern fest. OpenSearch-Abhaengigkeiten sind `compileOnly`; Plattform-
 JARs werden nicht doppelt ins Plugin gepackt.

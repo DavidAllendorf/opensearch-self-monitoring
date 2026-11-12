@@ -61,6 +61,8 @@ export interface Metric {
   rejected_total?: number;
   gc_time_ms?: number;
   logstash_available?: boolean;
+  logstash_targets?: number;
+  logstash_failed_targets?: number;
   pipeline_source?: 'ingest' | 'logstash';
   pipeline_id?: string;
   pipeline_uid?: string;

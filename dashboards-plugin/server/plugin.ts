@@ -5,7 +5,8 @@ import { historyQuery } from './queries';
 import { HISTORY_FIELDS } from '../common/types';
 
 const INDEX = '.stack-monitoring-*';
-type HistoryBucket = { key: number } & Record<typeof HISTORY_FIELDS[number], { value: number | null }>;
+type HistoryBucket = { key: number; doc_count: number; events_in_rate_samples?: { value: number }; events_out_rate_samples?: { value: number } }
+  & Record<typeof HISTORY_FIELDS[number], { value: number | null }>;
 interface SearchResult {
   hits: { hits: Array<{ _source: Metric }> };
   aggregations?: { timeline?: { buckets: HistoryBucket[] } };
@@ -56,7 +57,10 @@ export class StackMonitoringServerPlugin implements Plugin {
         const series: SeriesPoint[] = buckets.map((bucket) => ({
           timestamp: bucket.key,
           ...Object.fromEntries(HISTORY_FIELDS
-            .map(field => [field, bucket[field]?.value ?? null])),
+            .map(field => [field, bucket.doc_count === 0
+              || (field === 'events_in_rate' && bucket.events_in_rate_samples?.value === 0)
+              || (field === 'events_out_rate' && bucket.events_out_rate_samples?.value === 0)
+              ? null : bucket[field]?.value ?? null])),
         } as SeriesPoint));
         const overview: Overview = {
           latest, nodes: nodes.hits.hits.map(hit => hit._source as Metric),

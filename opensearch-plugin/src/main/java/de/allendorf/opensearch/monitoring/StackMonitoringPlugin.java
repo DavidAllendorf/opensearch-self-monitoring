@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** No REST endpoint, external connection or credentials are needed by the collector. */
+/** OpenSearch metrics use NodeClient; optional Logstash targets use read-only HTTP(S). */
 public final class StackMonitoringPlugin extends Plugin {
     @Override public List<Setting<?>> getSettings() { return MonitoringSettings.all(); }
 
