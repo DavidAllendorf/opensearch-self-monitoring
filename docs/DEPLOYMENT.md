@@ -14,10 +14,18 @@ Mehrere lokale oder entfernte Logstash-Instanzen werden mit
 Arbeitsumgebung ist noch offen; zusaetzliche API-Authentifizierung ist in 0.5.0
 nicht implementiert. HTTPS mit regulaerer Zertifikatspruefung wird unterstuetzt.
 
-Der produktive Server 192.168.178.40 bleibt waehrend Entwicklung und Test auf 0.4.0.
-Fuer diesen Umbau wurde kein produktiver OpenSearch- oder Dashboard-Neustart
-ausgefuehrt. 0.5.0 wird mit separaten nativen Testprozessen geprueft und als ZIPs
-ausgeliefert; es wird nicht automatisch in der Arbeitsumgebung installiert.
+Entwicklung und Integrationstest erfolgten zunaechst mit separaten nativen
+Testprozessen, ohne produktive Neustarts. Am 12.11.2026 wurde 0.5.0 auf ausdruecklichen
+Wunsch auch auf 192.168.178.40 installiert: Java- und Dashboard-Plugin jeweils
+0.5.0, OpenSearch/Dashboards weiterhin 3.6.0. Auf diesem kombinierten Testserver
+laufen Collector und Cluster-Manager im selben Prozess; dessen Neustart war
+fuer das Plugin-Update einmalig erforderlich. Dies aendert nicht die Empfehlung
+fuer einen separaten Collector in der Arbeitsumgebung.
+
+Anmeldung ueber Pangolin, lokale Logstash-main-Pipeline, Node-/Shard-Details,
+fortlaufende Metriken und gruener Clusterstatus wurden nach der Installation
+geprueft. Die vorhandenen 0.4.0-Pakete bleiben fuer einen Plugin-Rollback erhalten.
+Die Arbeitsumgebung wird nicht automatisch beliefert.
 
 ## Bisheriger Produktionsstand 0.4.0
 
