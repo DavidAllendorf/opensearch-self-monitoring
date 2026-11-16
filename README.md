@@ -24,6 +24,9 @@ benoetigt. Eigenstaendige Implementierung unter Apache-2.0.
   Recoveries mit Phase, Quelle/Ziel, Primary/Replica und Uebertragungsfortschritt.
 - Kompakte Standardansicht und sichtbar zusaetzliche Diagramme ueber
   „Erweiterte Metriken“, direkt bei den jeweiligen Diagrammen.
+- Alerts-Tab je Produkt: Ressourcen-Schwellwerte, Primary-Shard-Richtlinie,
+  Cluster-/Pipeline-Probleme und heuristische Durchsatz-Anomalien. Nur aktuelle
+  Hinweise, keine Benachrichtigungen oder externen Anbindungen; siehe [Regeln](docs/ALERTS.md).
 
 Die Oberflaeche wird unter **Stack Monitoring** registriert, auch in der neuen
 Navigation unter **Data administration**. Direkter Pfad: `/app/stackMonitoring`.

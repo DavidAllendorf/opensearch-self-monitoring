@@ -13,8 +13,9 @@ import { PipelineDetail } from './pipeline_detail';
 import { NodeDetail } from './node_detail';
 import { logstashTotal } from '../logstash_totals';
 import { ShardActivity } from './shard_activity';
+import { AlertsPage } from './alerts_page';
 
-const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines' };
+const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines', alerts: 'Alerts' };
 
 export function MonitoringApp({ http }: { http: HttpStart }) {
   const [nav, setNav] = useState<Navigation>(() => parseNavigation(window.location.hash));
@@ -71,7 +72,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
   const selected = nav.entity ? items.find(metric => entityId(metric) === nav.entity) : undefined;
   const loading = loadedKey !== requestKey;
   const status = logstash ? (nodes[0]?.status || 'unavailable') : latest?.status;
-  const activeTabs: View[] = logstash ? ['overview', 'nodes', 'pipelines'] : ['overview', 'nodes', 'indices', 'pipelines'];
+  const activeTabs: View[] = logstash ? ['overview', 'nodes', 'pipelines', 'alerts'] : ['overview', 'nodes', 'indices', 'pipelines', 'alerts'];
   const count = (view: View) => view === 'nodes' ? nodes.length : view === 'indices' ? data?.indices.length || 0 : view === 'pipelines' ? pipelines.length : undefined;
   const select = (metric: Metric) => navigate({ ...nav, entity: entityId(metric), label: entityName(metric) });
   const title = nav.entity ? (selected ? entityName(selected) : nav.label || nav.entity) : VIEW_NAMES[nav.view];
@@ -122,7 +123,9 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
           </EuiTab>)}</EuiTabs>
         <EuiSpacer size="m" />
         {logstash && !!latest.logstash_failed_targets && <><EuiCallOut title="Logstash-Ziele teilweise nicht erreichbar" color="warning"><p>{latest.logstash_failed_targets} von {latest.logstash_targets} konfigurierten APIs liefern keine verwertbaren Daten. Erreichbare Instanzen werden weiterhin angezeigt.</p></EuiCallOut><EuiSpacer size="m" /></>}
-        {logstash && !nodes.length ? <EuiCallOut title="Keine Logstash-Messwerte verfügbar" iconType="iInCircle">
+        {nav.view === 'alerts' ? loading ? <EuiLoadingSpinner size="l" /> : error
+          ? <EuiCallOut title="Alert-Auswertung pausiert" color="warning"><p>Ohne aktuelle API-Antwort kann der Zustand nicht bewertet werden. Bitte erneut aktualisieren.</p></EuiCallOut>
+          : <AlertsPage data={data!} section={nav.section} navigate={navigate} /> : logstash && !nodes.length ? <EuiCallOut title="Keine Logstash-Messwerte verfügbar" iconType="iInCircle">
           <p>Der Collector liest die in stack_monitoring.logstash.urls konfigurierten HTTP(S)-APIs. Ohne Konfiguration wird 127.0.0.1:9600 am Collector abgefragt. Für entfernte Server müssen deren Basis-URLs eingetragen werden. Zusätzliche API-Authentifizierung wird noch nicht unterstützt.</p>
         </EuiCallOut> : <>
           <div className="smSectionHeading">

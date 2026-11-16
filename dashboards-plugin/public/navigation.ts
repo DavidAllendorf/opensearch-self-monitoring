@@ -1,16 +1,16 @@
 import type { Metric, MetricKind } from '../common/types';
 
 export type Section = 'opensearch' | 'logstash';
-export type View = 'overview' | 'nodes' | 'indices' | 'pipelines';
+export type View = 'overview' | 'nodes' | 'indices' | 'pipelines' | 'alerts';
 export interface Navigation { section: Section; view: View; entity?: string; label?: string; }
 
 export function parseNavigation(hash: string): Navigation {
   const [path, query] = hash.replace(/^#\/?/, '').split('?');
   const [section, view] = path.split('/');
   const validSection = section === 'logstash' ? 'logstash' : 'opensearch';
-  const validView = ['overview', 'nodes', 'pipelines', ...(validSection === 'opensearch' ? ['indices'] : [])].includes(view) ? view as View : 'overview';
+  const validView = ['overview', 'nodes', 'pipelines', 'alerts', ...(validSection === 'opensearch' ? ['indices'] : [])].includes(view) ? view as View : 'overview';
   const params = new URLSearchParams(query);
-  return { section: validSection, view: validView, entity: params.get('entity') || undefined, label: params.get('label') || undefined };
+  return { section: validSection, view: validView, entity: validView === 'alerts' ? undefined : params.get('entity') || undefined, label: validView === 'alerts' ? undefined : params.get('label') || undefined };
 }
 
 export function navigationHash(value: Navigation): string {

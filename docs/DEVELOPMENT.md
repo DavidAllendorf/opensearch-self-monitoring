@@ -79,6 +79,9 @@ npm test
 Die Java-Tests pruefen Zaehler-Resets, Zeitberechnung, Null-Baselines und die
 engen Loeschgrenzen. Die TypeScript-Tests pruefen begrenzte History-Abfragen,
 exakte Entity-Filter und fehlende Messwerte.
+Die Alerts-Regeln werden ohne React in `public/alerts.ts` getestet: exakte
+Schwellengrenzen, fehlende/veraltete Daten, Produkttrennung, Pipeline-Identitaet
+und Anomalien mit Datenluecken bzw. unvollstaendigen Zeitintervallen.
 
 Nach Installation auf einem Entwicklungscluster prueft ein echter Integrationstest
 die gesamte Erfassung. Er legt einen zufaellig benannten Testindex an und entfernt

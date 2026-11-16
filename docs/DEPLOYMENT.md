@@ -1,6 +1,16 @@
 # Native Auslieferung auf 3.6.0
 
-## Produktionsstand 0.6.0
+## Produktionsstand Dashboard 0.7.0 / Collector 0.6.0
+
+Am 16.11.2026 wurde nur das Dashboards-Plugin auf 192.168.178.40 auf 0.7.0
+aktualisiert. Der neue Alerts-Tab wertet vorhandene Messwerte aus; Regeln und
+Grenzen stehen in ALERTS.md. Der Java-Collector bleibt auf 0.6.0 und die Plattform
+auf 3.6.0. Nur Dashboards wurde neu gestartet. Die OpenSearch-Prozess-ID blieb
+unveraendert, neue Metriken liefen weiter und der Cluster blieb gruen.
+Keine Konfigurations- oder Mapping-Aenderung. Das Dashboard-ZIP 0.6.0 bleibt
+unter `/opt/opensearch-self-monitoring/releases/0.6.0/` fuer einen Rollback erhalten.
+
+## Bisheriger Produktionsstand 0.6.0
 
 Am 12.11.2026 wurden beide Plugins auf 192.168.178.40 auf 0.6.0 aktualisiert.
 OpenSearch/Dashboards bleiben auf 3.6.0. Neu sind Shard Activity, eine kompaktere

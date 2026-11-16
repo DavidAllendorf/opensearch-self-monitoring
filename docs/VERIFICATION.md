@@ -1,7 +1,32 @@
 # Verifikation fuer OpenSearch 3.6.0
 
-Pluginversion 0.6.0 wurde gegen OpenSearch und OpenSearch Dashboards 3.6.0 gebaut.
+Dashboard 0.7.0 und Java-Collector 0.6.0 sind fuer OpenSearch/Dashboards 3.6.0.
 Historische Ergebnisse stehen in VERIFICATION-3.9.md.
+
+## Alerts 0.7.0
+
+- 24 TypeScript-Quelltests erfolgreich: darunter 10 neue Tests fuer strikte
+  Primary-Grenze (> 3), ungerundete Ressourcen-Schwellwerte, fehlende Werte,
+  veraltete Samples, Produkttrennung, Pipeline-Raten statt kumulativer Fehler,
+  eindeutige Pipeline-Identitaet sowie Anomalien bei unvollstaendigen Buckets,
+  Datenluecken, variabler Basis und fehlender Historie.
+- Der Java-Collector bleibt unveraendert auf 0.6.0; keine neuen Mappings,
+  API-Routen, Berechtigungen oder Laufzeitabhaengigkeiten fuer die Alerts.
+- TypeScript-Pruefung im offiziellen 3.6.0-Quellbaum und Plugin-Helpers-Build
+  mit Node 22.22.0 erfolgreich. Das fertige ZIP wurde auf dem nativen Server
+  installiert; Dashboards 0.7.0 bereit, OpenSearch-Prozess-ID unveraendert,
+  neue Collector-Samples und gruener Cluster bestaetigt.
+- Browser ueber Pangolin: OpenSearch-Alerts mit realen 22 Primary-Shards,
+  Schweregradfilter, Textsuche inklusive Leerzustand und Link zur betroffenen
+  Node geprueft. Die Shard-Detailansicht bestaetigt 22 Primary- und 0 Replica-Kopien.
+  Logstash-Alerts zeigen korrekt keine ausgeloeste Regel. Ausklappbare Regeln
+  und Layout visuell geprueft; Screenshot im Auslieferungsworkspace gespeichert.
+- Beim kontrollierten Dashboards-Neustart pausierte die Alert-Auswertung bei
+  API-Fehlern und nahm nach Wiederherstellung wieder auf. Der alte Browser-Cache
+  wurde fuer die Pruefung verworfen; die temporaere Cache-Header-Konfiguration
+  ist entfernt und die urspruengliche YAML bytegleich wiederhergestellt.
+
+## Bisherige Pruefungen 0.6.0 und aelter
 
 - Java: Gradle-Tests und Plugin-ZIP gegen echte 3.6.0-Abhaengigkeiten.
 - Dashboard: 14 Quelltests, TypeScript-Pruefung im 3.6.0-Quellbaum und offizieller Plugin-Helpers-Build mit Node 22.22.0.

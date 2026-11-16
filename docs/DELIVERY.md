@@ -8,7 +8,10 @@ nativen OpenSearch-/Dashboards-Paar. Danach ein Git-Tag setzen und dieselben
 geprueften ZIPs ausliefern. Die mitgelieferte GitHub-Actions-Datei baut beide
 Artefakte; ein automatisches Deployment auf Benutzer-Server findet nicht statt.
 
-Der Pluginstand ist 0.6.0, die Plattform-Kompatibilitaet exakt 3.6.0.
+Der Dashboard-Pluginstand ist 0.7.0, der unveraenderte Java-Collector bleibt 0.6.0.
+Die Plattform-Kompatibilitaet ist exakt 3.6.0. Fuer das reine Alerts-Update von
+0.6.0 ist nur das Dashboards-ZIP auf allen Dashboards-Instanzen zu ersetzen;
+OpenSearch und der Collector brauchen keinen Neustart und keine Mapping-Aenderung.
 Der Installer meldet eine ausgehende Socket-Berechtigung fuer frei konfigurierbare
 Logstash-Hosts und -Ports. Der Code fragt nur die administrativ konfigurierten
 HTTP(S)-Basis-URLs ab. Dies oeffnet keinen eingehenden Port und aendert keine Firewall.
