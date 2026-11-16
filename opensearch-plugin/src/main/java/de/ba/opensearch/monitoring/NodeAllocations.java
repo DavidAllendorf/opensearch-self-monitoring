@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.opensearch.action.admin.indices.stats.CommonStats;
 import org.opensearch.action.admin.indices.stats.ShardStats;
@@ -15,6 +15,8 @@ import java.util.Map;
 /** Routing is authoritative for placement; missing or concurrently moved shard stats stay absent. */
 final class NodeAllocations {
     static final int LIMIT = 10_000;
+    static final int INDEX_LIMIT = 1_000;
+    private record IndexPrimaries(String name, String uuid, int primaries) {}
     private NodeAllocations() {}
 
     static Map<String, CommonStats> statsByAllocation(ShardStats[] stats) {
@@ -36,10 +38,14 @@ final class NodeAllocations {
                           Map<String, CommonStats> stats, ClusterState state) {
         var indices = new HashSet<String>();
         int primaries = 0;
+        Map<String, IndexPrimaries> perIndex = new HashMap<>();
         List<Map<String, Object>> rows = new ArrayList<>();
         for (var shard : shards) {
             indices.add(shard.shardId().getIndex().getUUID());
             if (shard.primary()) primaries++;
+            String uuid = shard.shardId().getIndex().getUUID();
+            perIndex.compute(uuid, (key, previous) -> new IndexPrimaries(shard.getIndexName(), uuid,
+                (previous == null ? 0 : previous.primaries()) + (shard.primary() ? 1 : 0)));
             if (rows.size() == LIMIT) continue;
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("index_name", shard.getIndexName());
@@ -67,6 +73,12 @@ final class NodeAllocations {
         node.put("allocation_indices", indices.size());
         node.put("allocation_sampled_shards", rows.size());
         node.put("allocations", rows);
+        // Count all routing entries before limiting output. Highest counts stay visible first.
+        node.put("allocation_index_primaries", perIndex.values().stream()
+            .sorted(Comparator.comparingInt(IndexPrimaries::primaries).reversed().thenComparing(IndexPrimaries::uuid))
+            .limit(INDEX_LIMIT)
+            .map(index -> Map.of("index_name", index.name(), "index_uuid", index.uuid(), "primaries", index.primaries()))
+            .toList());
     }
 
     private static String key(ShardRouting shard) {

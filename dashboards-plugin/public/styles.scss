@@ -40,6 +40,7 @@
 .smShardSummary { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; padding: 10px 0 14px; }
 .smShardSummary strong { margin-left: 5px; font-variant-numeric: tabular-nums; }
 .smAlertToolbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.smAlertObservation { white-space: pre-line; overflow-wrap: anywhere; }
 .smAlertStats .smStats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .smAlertRules { font-size: 12px; line-height: 1.6; }
 .smAlertRules summary { cursor: pointer; font-weight: 600; }

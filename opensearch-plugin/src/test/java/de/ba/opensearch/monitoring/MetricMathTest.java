@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;

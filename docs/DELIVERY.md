@@ -8,10 +8,11 @@ nativen OpenSearch-/Dashboards-Paar. Danach ein Git-Tag setzen und dieselben
 geprueften ZIPs ausliefern. Die mitgelieferte GitHub-Actions-Datei baut beide
 Artefakte; ein automatisches Deployment auf Benutzer-Server findet nicht statt.
 
-Der Dashboard-Pluginstand ist 0.7.0, der unveraenderte Java-Collector bleibt 0.6.0.
-Die Plattform-Kompatibilitaet ist exakt 3.6.0. Fuer das reine Alerts-Update von
-0.6.0 ist nur das Dashboards-ZIP auf allen Dashboards-Instanzen zu ersetzen;
-OpenSearch und der Collector brauchen keinen Neustart und keine Mapping-Aenderung.
+Beide Plugins stehen auf 0.8.0, die Plattform-Kompatibilitaet ist exakt 3.6.0.
+Die neue Primary-Regel erfordert die Index-Zaehler des Collectors 0.8.0; fuer
+dieses Update beide ZIPs ersetzen und Collector sowie Dashboards neu starten.
+Spaetere reine Schwellen-Aenderungen in opensearch_dashboards.yml erfordern nur
+Dashboards-Neustarts. Dieselbe Konfiguration auf allen Dashboards-Instanzen ausrollen.
 Der Installer meldet eine ausgehende Socket-Berechtigung fuer frei konfigurierbare
 Logstash-Hosts und -Ports. Der Code fragt nur die administrativ konfigurierten
 HTTP(S)-Basis-URLs ab. Dies oeffnet keinen eingehenden Port und aendert keine Firewall.
@@ -34,7 +35,7 @@ Plugin-Installation neu gestartet werden; die uebrigen OpenSearch-Nodes nicht.
 
 ```sh
 systemctl stop opensearch
-/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.6.0.zip
+/usr/share/opensearch/bin/opensearch-plugin install --batch file:///pfad/stack-monitoring-0.8.0.zip
 systemctl start opensearch
 
 systemctl stop opensearch-dashboards

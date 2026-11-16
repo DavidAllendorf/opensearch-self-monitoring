@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.opensearch.common.settings.Setting;
 import org.opensearch.common.unit.TimeValue;

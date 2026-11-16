@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

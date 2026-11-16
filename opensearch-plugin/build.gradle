@@ -1,6 +1,6 @@
 plugins { id 'java-library' }
 
-group = 'de.allendorf.opensearch'
+group = 'de.ba.opensearch'
 version = rootProject.property('pluginVersion')
 repositories { mavenCentral() }
 

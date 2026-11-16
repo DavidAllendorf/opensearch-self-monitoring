@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import java.time.Instant;
 import java.time.LocalDate;

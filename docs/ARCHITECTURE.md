@@ -168,3 +168,20 @@ Der Diagrammkatalog trennt Standard- und Zusatzdiagramme fuer jede Ansicht.
 Der Schalter liegt bei den Diagrammen und erscheint nicht in reinen Tabellen-
 Untertabs. So bleibt die Standardansicht kompakt und der Schalter hat immer
 eine sichtbare Wirkung, auch in der Cluster-Uebersicht.
+
+## Alerts und konfigurierbare Regeln (0.8.0)
+
+Der Collector zaehlt Primaries je Index-UUID und Node vor allen Ausgabelimits.
+Bis 1.000 Index-Zaehler je Node, nach Primary-Anzahl absteigend, liegen als
+nicht indiziertes Objektarray allocation_index_primaries im Node-Dokument.
+Die Uebersichts-API liefert sie nur bei alerts=true; Shard-Detailarrays bleiben
+weiterhin ausschliesslich in der ausgewaehlten Node-Detailantwort.
+
+Das Dashboard liest stack_monitoring.alerts aus der nativ validierten YAML und
+gibt nur diese oeffentlichen Schwellenwerte mit der bestehenden, benutzergebundenen
+Monitoring-API weiter. Kein privilegierter Leseproxy und keine neue Schreibroute.
+Die reine Regelfunktion benutzt dieselben Werte wie die Regelbeschreibung.
+Gruppierung erfolgt je Regel/Schwere, fuer Primary-Konzentration zusaetzlich je
+Index-UUID. Node-IDs dienen der Deduplizierung und Node-Namen der Anzeige.
+Clusterweite Befunde werden nicht ohne Messgrundlage einzelnen Nodes zugeordnet.
+Details zu Defaults, Semantik und Grenzen: ALERTS.md.

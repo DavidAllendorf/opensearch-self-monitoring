@@ -14,6 +14,7 @@ import { NodeDetail } from './node_detail';
 import { logstashTotal } from '../logstash_totals';
 import { ShardActivity } from './shard_activity';
 import { AlertsPage } from './alerts_page';
+import { DEFAULT_ALERT_CONFIG } from '../../common/alert_config';
 
 const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines', alerts: 'Alerts' };
 
@@ -26,7 +27,8 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
   const [refresh, setRefresh] = useState(0);
   const [loadedKey, setLoadedKey] = useState('');
   const kind = historyKind(nav);
-  const requestKey = [kind, nav.entity || '', minutes].join(':');
+  const alertsView = nav.view === 'alerts';
+  const requestKey = [kind, nav.entity || '', minutes, alertsView].join(':');
   const logstash = nav.section === 'logstash';
 
   function navigate(next: Navigation) {
@@ -46,7 +48,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
       let nextInterval = 10000;
       try {
         const result = await http.get<Overview>('/api/stack_monitoring/overview', {
-          query: { minutes, kind, ...(nav.entity ? { entity: nav.entity } : {}) }, signal: abort.signal,
+          query: { minutes, kind, alerts: alertsView, ...(nav.entity ? { entity: nav.entity } : {}) }, signal: abort.signal,
         });
         nextInterval = Math.max(5000, result.intervalMs);
         if (!disposed) { setData(result); setLoadedKey(requestKey); setError(undefined); }
@@ -65,7 +67,8 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
   }, [http, minutes, paused, refresh, kind, nav.entity, requestKey]);
 
   const latest = data?.latest;
-  const stale = latest && data && data.serverTime - latest.timestamp > Math.max(30000, data.intervalMs * 3);
+  const alertConfig = data?.alertConfig || DEFAULT_ALERT_CONFIG;
+  const stale = latest && data && data.serverTime - latest.timestamp > Math.max(alertConfig.stale_after_ms, data.intervalMs * alertConfig.stale_interval_multiplier);
   const pipelines = (data?.pipelines || []).filter(metric => metric.pipeline_source === (logstash ? 'logstash' : 'ingest'));
   const nodes = logstash ? data?.logstashNodes || [] : data?.nodes || [];
   const items = nav.view === 'pipelines' ? pipelines : nav.view === 'indices' ? data?.indices || [] : nodes;

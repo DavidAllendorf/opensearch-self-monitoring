@@ -198,6 +198,10 @@
     "allocation_replicas": {
       "type": "long"
     },
+    "allocation_index_primaries": {
+      "type": "object",
+      "enabled": false
+    },
     "allocation_indices": {
       "type": "long"
     },

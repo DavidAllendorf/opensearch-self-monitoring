@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.opensearch.action.admin.cluster.node.stats.NodeStats;
 import org.opensearch.action.admin.indices.stats.CommonStats;

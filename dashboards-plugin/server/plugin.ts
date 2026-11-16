@@ -1,5 +1,7 @@
 import { schema } from '@osd/config-schema';
-import type { CoreSetup, Plugin } from '../../../src/core/server';
+import type { CoreSetup, Plugin, PluginInitializerContext } from '../../../src/core/server';
+import type { MonitoringConfig } from './config';
+import { first } from 'rxjs/operators';
 import type { Metric, MetricKind, Overview, SeriesPoint } from '../common/types';
 import { historyQuery } from './queries';
 import { HISTORY_FIELDS } from '../common/types';
@@ -13,13 +15,16 @@ interface SearchResult {
 }
 
 export class StackMonitoringServerPlugin implements Plugin {
-  public setup(core: CoreSetup) {
+  constructor(private readonly context: PluginInitializerContext) {}
+  public async setup(core: CoreSetup) {
+    const alertConfig = (await this.context.config.create<MonitoringConfig>().pipe(first()).toPromise()).alerts;
     core.http.createRouter().get({
       path: '/api/stack_monitoring/overview',
       validate: { query: schema.object({
         minutes: schema.number({ defaultValue: 15, min: 1, max: 10080 }),
         kind: schema.oneOf([schema.literal('cluster'), schema.literal('node'), schema.literal('index'), schema.literal('pipeline'), schema.literal('logstash')], { defaultValue: 'cluster' }),
         entity: schema.maybe(schema.string({ minLength: 1, maxLength: 1024 })),
+        alerts: schema.boolean({ defaultValue: false }),
       }) },
     }, async (context, request, response) => {
       const { minutes, kind, entity } = request.query;
@@ -34,9 +39,9 @@ export class StackMonitoringServerPlugin implements Plugin {
       try {
         const latestResult = await search({ size: 1, sort: [{ timestamp: 'desc' }], query: { term: { kind: 'cluster' } } });
         const latest = latestResult.hits.hits[0]?._source as Metric | undefined;
-        if (!latest) return response.ok({ body: { latest: null, nodes: [], indices: [], pipelines: [], logstashNodes: [], allocationNode: null, series: [], intervalMs: 10000, serverTime: now } });
+        if (!latest) return response.ok({ body: { latest: null, nodes: [], indices: [], pipelines: [], logstashNodes: [], allocationNode: null, series: [], intervalMs: 10000, serverTime: now, alertConfig } });
         const sampleQuery = (sampleKind: MetricKind) => ({
-          _source: { excludes: ['allocations'] },
+          _source: { excludes: ['allocations', ...(request.query.alerts ? [] : ['allocation_index_primaries'])] },
           size: sampleKind === 'index' || sampleKind === 'pipeline' ? 10000 : 1000,
           query: { bool: { filter: [{ term: { kind: sampleKind } }, { term: { timestamp: latest.timestamp } }, { term: { cluster_uuid: latest.cluster_uuid } }] } },
         });
@@ -67,7 +72,7 @@ export class StackMonitoringServerPlugin implements Plugin {
           indices: indices.hits.hits.map(hit => hit._source as Metric), series,
           pipelines: pipelines.hits.hits.map(hit => hit._source), logstashNodes: logstashNodes.hits.hits.map(hit => hit._source),
           allocationNode: allocation?.hits.hits[0]?._source || null,
-          intervalMs: latest.interval_ms || 10000, serverTime: now,
+          intervalMs: latest.interval_ms || 10000, serverTime: now, alertConfig,
         };
         return response.ok({ body: overview });
       } catch (error) {

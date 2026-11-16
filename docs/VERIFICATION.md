@@ -1,9 +1,35 @@
 # Verifikation fuer OpenSearch 3.6.0
 
-Dashboard 0.7.0 und Java-Collector 0.6.0 sind fuer OpenSearch/Dashboards 3.6.0.
+Beide Plugins stehen auf 0.8.0 fuer OpenSearch/Dashboards 3.6.0.
 Historische Ergebnisse stehen in VERIFICATION-3.9.md.
 
-## Alerts 0.7.0
+## 0.8.0
+
+- 28 TypeScript-Quelltests erfolgreich: Primary-Regel je Index-UUID und Node,
+  keine Summierung verschiedener Indizes/Replicas, gruppierte Hinweise mit
+  allen betroffenen Nodes, konfigurierbare Ressourcen-/Shard-/Anomalie-Grenzen.
+- 15 Java-Tests im Namensraum de.ba erfolgreich; JAR ohne alte persoenliche
+  Pakete. Begrenzte Index-Zaehler behalten die hoechsten Primary-Konzentrationen
+  und bleiben unabhaengig vom Shard-Zeilenlimit korrekt.
+- Zwei Tests mit der echten Dashboards-Konfigurationsschema-Laufzeit: Defaults,
+  Teilueberschreibungen, unbekannte Schluessel, negative/ungueltige Werte und
+  widerspruechliche Grenzwerte. TypeScript und offizieller 3.6.0-Build erfolgreich.
+- Native Installation beider 0.8.0-Plugins, de.ba-Einstiegspunkt und gruener
+  Cluster geprueft. Alle gespeicherten Primary-Zaehler mit nativer Shard-API
+  verglichen; vier Primaries eines leeren Testindex korrekt erfasst.
+- Authentifizierte Dashboard-API liefert temporaere YAML-Teilueberschreibungen
+  und ergaenzte Defaults. Index-Zaehler nur bei Alerts-Abfrage im Node-Payload;
+  grosse Shard-Arrays bleiben aus der Uebersichtsantwort ausgeschlossen.
+- Nach Rueckkehr zu den urspruenglichen Defaults zeigt der Browser eine Warnung
+  fuer den vier-Primary-Testindex, mit betroffener Node und funktionierendem
+  Node-Link. Die zahlreichen Primaries anderer Indizes werden nicht addiert.
+  Testindex anschliessend gezielt entfernt; temporaere YAML-Ueberschreibungen
+  und Cache-Header entfernt, Originalkonfiguration bytegleich wiederhergestellt.
+- Browser nach Entfernung des Testindex: keine ausgeloeste Regel, trotz der
+  weiterhin vorhandenen zahlreichen Primaries verschiedener Indizes. Dadurch
+  ist der fruehere Fehlalarm auf die Gesamtzahl beseitigt.
+
+## Historisch: Alerts 0.7.0 (damals Gesamt-Primaries pro Node)
 
 - 24 TypeScript-Quelltests erfolgreich: darunter 10 neue Tests fuer strikte
   Primary-Grenze (> 3), ungerundete Ressourcen-Schwellwerte, fehlende Werte,

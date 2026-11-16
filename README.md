@@ -27,6 +27,8 @@ benoetigt. Eigenstaendige Implementierung unter Apache-2.0.
 - Alerts-Tab je Produkt: Ressourcen-Schwellwerte, Primary-Shard-Richtlinie,
   Cluster-/Pipeline-Probleme und heuristische Durchsatz-Anomalien. Nur aktuelle
   Hinweise, keine Benachrichtigungen oder externen Anbindungen; siehe [Regeln](docs/ALERTS.md).
+- Primary-Regel je Index und Node, gruppierte Warnungen mit betroffenen Nodes
+  und alle Schwellen in `opensearch_dashboards.yml` konfigurierbar.
 
 Die Oberflaeche wird unter **Stack Monitoring** registriert, auch in der neuen
 Navigation unter **Data administration**. Direkter Pfad: `/app/stackMonitoring`.
@@ -56,6 +58,8 @@ zum Zeitabstand hinzu. Cluster-Gesamtwerte bleiben vom Indexdetail-Limit unberue
 ## Dokumentation
 
 - [Entwicklung und reproduzierbarer Build](docs/DEVELOPMENT.md)
+- [Uebernahme in eine Arbeitsumgebung](docs/ADOPTION.md)
+- [Alle Dashboard-Schwellwerte mit Defaults](config/opensearch_dashboards.yml.example)
 - [Installation, Updates, Rollen und Betrieb](docs/DELIVERY.md)
 - [Architektur, Datenmodell und Grenzen](docs/ARCHITECTURE.md)
 - [Durchgefuehrte Pruefungen](docs/VERIFICATION.md)

@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.opensearch.SpecialPermission;
 import org.opensearch.common.xcontent.XContentHelper;

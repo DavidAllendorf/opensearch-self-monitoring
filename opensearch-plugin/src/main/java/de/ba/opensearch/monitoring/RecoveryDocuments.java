@@ -1,4 +1,4 @@
-package de.allendorf.opensearch.monitoring;
+package de.ba.opensearch.monitoring;
 
 import org.opensearch.cluster.routing.RecoverySource;
 import org.opensearch.indices.recovery.RecoveryState;

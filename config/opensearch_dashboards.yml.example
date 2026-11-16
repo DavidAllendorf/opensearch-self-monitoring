@@ -1,0 +1,25 @@
+# Merge into opensearch_dashboards.yml on EVERY Dashboards instance.
+# Optional settings with built-in defaults. Restart Dashboards after changes.
+stack_monitoring:
+  alerts:
+    cpu: { warning: 85, critical: 95 }
+    heap: { warning: 85, critical: 95 }
+    disk: { warning: 85, critical: 95 }
+    thread_pool_queue: { warning: 100, critical: 1000 }
+    worker_utilization: { warning: 90, critical: 99 }
+    queue_backpressure: { warning: 1, critical: 5 }
+    primary_shards_per_index: 3  # Warning when GREATER, per index UUID and node; no replicas.
+    unassigned_shards: 0       # Warning when greater; critical when cluster is red.
+    logstash_failed_targets: 0 # Critical when greater.
+    ingest_failed_rate: 0     # Warning when greater (failures/s).
+    stale_after_ms: 30000     # Stale after max(this, interval * multiplier).
+    stale_interval_multiplier: 3
+    cluster_health: { warning: yellow, critical: red }
+    anomaly:
+      baseline_buckets: 30
+      min_buckets: 8
+      min_coverage: 0.8
+      spike_ratio: 3
+      mad_multiplier: 6
+      min_rate: 10
+      drop_ratio: 0.2

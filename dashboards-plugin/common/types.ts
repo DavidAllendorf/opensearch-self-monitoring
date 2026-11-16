@@ -1,3 +1,4 @@
+import type { AlertConfig } from './alert_config';
 export type MetricKind = 'cluster' | 'node' | 'index' | 'pipeline' | 'logstash';
 
 export interface ProcessorMetric {
@@ -104,6 +105,7 @@ export interface Metric {
   allocation_indices?: number;
   allocation_sampled_shards?: number;
   allocations?: ShardAllocation[];
+  allocation_index_primaries?: Array<{ index_name: string; index_uuid: string; primaries: number }>;
 }
 
 export const HISTORY_FIELDS = [
@@ -117,6 +119,7 @@ export const HISTORY_FIELDS = [
 export type SeriesPoint = { timestamp: number } & Record<typeof HISTORY_FIELDS[number], number | null>;
 
 export interface Overview {
+  alertConfig?: AlertConfig;
   latest: Metric | null;
   nodes: Metric[];
   indices: Metric[];

@@ -1,63 +1,62 @@
-# Alerts (Dashboard 0.7.0)
+# Alerts (0.8.0)
 
-Unter OpenSearch und Logstash gibt es jeweils einen direkt verlinkbaren Alerts-Tab:
-`#/opensearch/alerts` bzw. `#/logstash/alerts`. Er verwendet dieselben lesegeschuetzten
-Monitoring-Daten wie die Uebersicht. Keine neuen Endpunkte, Schreibrechte, externen
-Dienste, E-Mails oder Konfiguration. Kein OpenSearch-Alerting- oder ML-Plugin erforderlich.
+Je Produkt gibt es einen Alerts-Tab: #/opensearch/alerts und #/logstash/alerts.
+Die Auswertung liest dieselben geschuetzten Metriken wie die Uebersicht; keine
+externen Dienste, E-Mails, neuen Schreibrechte, Alarmhistorie oder Quittierung.
 
-## Regeln
+## Konfiguration
 
-| Messwert | Warnung | Kritisch |
-| --- | --- | --- |
-| Node CPU / JVM Heap | >= 85 % | >= 95 % |
-| OpenSearch-Dateisystem belegt | >= 85 % | >= 95 % |
-| Primary-Shards pro OpenSearch-Node | > 3 | - |
-| OpenSearch Threadpool-Queue (gesamt) | >= 100 | >= 1.000 |
-| Clusterstatus | Gelb | Rot |
-| Nicht zugewiesene Shards | > 0 | Bei rotem Cluster |
-| Logstash API-Ausfaelle | - | > 0 Ziele |
-| Ingest-Pipeline-Fehlerrate | > 0/s | - |
-| Logstash Worker-Auslastung | >= 90 % | >= 99 % |
-| Logstash Queue Backpressure | >= 1 | >= 5 |
-| Keine frischen Collector-Daten | - | Alter > max(30 s, 3 Messintervalle) |
+Alle Schwellen stehen unter stack_monitoring.alerts in opensearch_dashboards.yml.
+Die vollstaendige, kommentierte Beispielkonfiguration unter
+config/opensearch_dashboards.yml.example ist massgeblich. Nicht angegebene Werte
+behalten ihren Default. Dieselbe YAML auf alle Dashboards-Instanzen verteilen und
+diese neu starten. Die Oberflaeche zeigt die tatsaechlich aktiven Serverwerte.
+Ungeltige Schluessel, ungueltige Typen/Grenzen und widerspruechliche Werte verhindern
+den Start. Gemeinsame Defaults: dashboards-plugin/common/alert_config.ts;
+Schema: dashboards-plugin/server/config.ts.
 
-Primary-Shards umfassen System- und Monitoring-Indizes. Die Grenze 3 ist eine
-ausdruecklich gewuenschte Betriebsrichtlinie, kein OpenSearch-Limit oder allgemeiner
-Ratschlag zur Shard-Anzahl. Auch ein gesunder Einzelknotencluster kann sie ausloesen.
-Prozentwerte werden vor dem Vergleich nicht gerundet. Momentane Ressourcen-Schwellwerte
-werden nicht zeitlich geglaettet und koennen kurze Lastspitzen anzeigen. Kumulative
-Fehlerzaehler werden nicht als neue Fehler interpretiert.
+Defaults: CPU/Heap/Dateisystem 85/95 %, OpenSearch-Queue 100/1.000,
+Logstash-Worker 90/99 %, Backpressure 1/5, Primary-Grenze 3,
+nicht zugewiesene Shards/Logstash-Ausfaelle/Ingest-Fehlerrate jeweils > 0.
+Gelb warnt, Rot ist kritisch. Erfassung veraltet nach max(30 s, 3 Messintervalle).
 
-## Anomalien
+## Primary-Shards und betroffene Nodes
 
-Die OpenSearch-Indexierungs-/Suchrate und die Logstash-Outputrate werden auf
-heuristische Abweichungen geprueft, ohne ML-Modell. Basis ist der Verlauf des
-ausgewaehlten Zeitraums: bis zu 30 vorherige abgeschlossene Histogrammintervalle.
-Mindestens 8 gueltige Werte und mindestens 80 % Datenabdeckung sind erforderlich.
-Das aktuelle unvollstaendige Intervall wird ausgeschlossen. Der letzte komplette
-Wert darf nicht aelter als eine Intervallbreite plus max(30 s, 3 Messintervalle) sein.
+Die Regel zaehlt Primary-Shards DESSELBEN Index (UUID) auf DERSELBEN Node:
+mehr als primary_shards_per_index loest aus; genau die Grenze nicht.
+Die Primaries verschiedener Indizes werden nie addiert. Replicas zaehlen nicht.
+Dies ist eine Betriebsrichtlinie, kein OpenSearch-Limit. Mehrere identische
+Kopien derselben Shard-ID auf einer Node werden dadurch nicht behauptet.
 
-- Anstieg: > 3-facher Median, > Median + 6-fache mediane absolute Abweichung
-  (MAD) und > 10 Operationen/s.
-- Rueckgang: < 20 % des Medians, sofern der Median mindestens 10/s betraegt.
+Collector 0.8.0 liefert kompakte Index-Zaehler separat von der grossen Shard-Liste.
+Alle Routing-Eintraege werden gezaehlt, dann die 1.000 Indizes mit den meisten
+Primaries je Node gespeichert. Fehlende oder begrenzte Zaehler werden als Grenze
+der Auswertung angezeigt. Ein alter Collector liefert hier keinen gesunden Nullwert.
 
-Der Zeitbereich bestimmt die Histogrammbreite und damit die Bedeutung der
-Abweichung. Bei 15 Minuten dauert der Start typischerweise etwa 3 Minuten;
-bei laengeren Zeitbereichen sind mehr historische Daten notwendig. Geplante
-Lastwechsel koennen Hinweise ausloesen; sie sind kein sicherer Fehlernachweis.
+Warnungen derselben Regel und Schwere werden zusammengefasst, bei der Shard-Regel
+zusaetzlich getrennt je Index-UUID. Die Spalte Betroffene Nodes listet Node-Namen
+mit Links zu Details. Messwerte und Pipeline-Zuordnung bleiben in der Zeile erhalten.
+Bei rein clusterweiten Anomalien, nicht zugewiesenen Shards oder unerreichbaren
+APIs ist aus den verfuegbaren Daten keine bestimmte betroffene Node ableitbar;
+die Seite nennt diese Einschraenkung anstelle einer erfundenen Liste.
 
-## Verhalten und Wartung
+## Anomalien und Aktualitaet
 
-Hinweise werden mit jedem Poll neu berechnet und verschwinden bei nicht mehr
-erfuellter Bedingung. Keine Historie, Quittierung oder Hintergrundausfuehrung bei
-geschlossenem Browser. Pausieren haelt auch die Alert-Auswertung auf dem letzten
-geladenen Stand. Veraltete Daten erzeugen ausschliesslich einen Erfassungsalarm;
-andere Bedingungen werden bis zur naechsten Messung ausgesetzt. Fehlende Daten
-und Grenzen der Auswertung werden separat angezeigt und gelten nicht als gesund.
+OpenSearch-Indexierungs-/Suchrate und Logstash-Outputrate werden heuristisch
+verglichen. Defaults: bis 30 vorherige abgeschlossene Histogrammintervalle,
+mindestens 8 gueltige Werte und 80 % Abdeckung. Das laufende unvollstaendige
+Intervall wird nicht verwendet. Der letzte komplette Wert muss frisch sein.
 
-Schweregradfilter, Textsuche und Links fuehren zu den vorhandenen Detailansichten.
-Die reinen Regelfunktionen stehen in `dashboards-plugin/public/alerts.ts`, die
-Darstellung in `public/components/alerts_page.tsx`. Schwellen und Beschreibungen
-bei Aenderungen gemeinsam aktualisieren, anschliessend `npm test` und den
-Dashboard-TypeScript-/Plugin-Helpers-Build ausfuehren. Der Java-Collector 0.6.0
-liefert bereits alle benoetigten Werte; fuer 0.7.0 muss nur Dashboards neu starten.
+Anstieg: > spike_ratio * Median UND > Median + mad_multiplier * MAD
+UND > min_rate (Defaults 3, 6, 10/s). Rueckgang: < drop_ratio * Median, sofern
+der Median mindestens min_rate betraegt (Defaults 0,2 und 10/s).
+MAD ist die mediane absolute Abweichung. Alle diese Werte sind konfigurierbar.
+Der gewaehlte Zeitraum bestimmt die Histogrammbreite; Lastwechsel koennen
+berechtigte Hinweise ausloesen und sind kein sicherer Fehlernachweis.
+
+Ressourcen-Schwellwerte gelten fuer den aktuellen Messwert ohne Glaettung oder
+Rundung. Hinweise verschwinden nach Ende der Bedingung. Pause haelt den letzten
+Stand; bei veralteten Daten oder API-Fehlern werden andere Regeln ausgesetzt.
+Fehlende Metriken gelten nicht als gesund. Kumulative Fehlerzaehler werden nicht
+als neue Fehler interpretiert. Regelcode: public/alerts.ts; Darstellung:
+public/components/alerts_page.tsx. Tests und Build siehe DEVELOPMENT.md.

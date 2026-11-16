@@ -31,7 +31,7 @@ JDK 21 und ein gesetztes `JAVA_HOME` reichen. Der Wrapper ist versioniert:
 ./gradlew :opensearch-plugin:test :opensearch-plugin:pluginZip
 ```
 
-Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.6.0.zip`.
+Ergebnis: `opensearch-plugin/build/distributions/stack-monitoring-0.8.0.zip`.
 Unter Windows `gradlew.bat` verwenden. `gradle.properties` legt die beiden
 Versionsnummern fest. OpenSearch-Abhaengigkeiten sind `compileOnly`; Plattform-
 JARs werden nicht doppelt ins Plugin gepackt.
@@ -58,8 +58,10 @@ Aus diesem Repository:
 bash scripts/build-dashboards.sh /absoluter/pfad/OpenSearch-Dashboards
 ```
 
-Das Skript verwendet einen eigenen temporaeren Plugin-Ordner. Fertiges ZIP:
-`artifacts/stackMonitoring-3.6.0.zip`. Es enthaelt vorkompilierte Browser-Bundles
+Das Skript verwendet einen eigenen temporaeren Plugin-Ordner.
+Vor dem Bundle-Build prueft es TypeScript und die echte Dashboard-Konfigurations-
+Schema-Laufzeit mit Jest; dieselben Checks laufen damit in GitHub Actions.
+Fertiges ZIP: `artifacts/stackMonitoring-3.6.0.zip`. Es enthaelt vorkompilierte Browser-Bundles
 und transpilierten Servercode. Ein Server braucht zum Installieren keinen Build.
 
 Fuer interaktive Entwicklung stattdessen `dashboards-plugin/` nach

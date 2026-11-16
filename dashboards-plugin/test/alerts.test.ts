@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { Metric, Overview, SeriesPoint } from '../common/types';
 import { evaluateAlerts } from '../public/alerts';
 import { historyKind, parseNavigation } from '../public/navigation';
+import { DEFAULT_ALERT_CONFIG, validateAlertConfig } from '../common/alert_config';
 
 const now = 1_000_000;
 function metric(values: Partial<Metric> = {}): Metric {
@@ -10,7 +11,8 @@ function metric(values: Partial<Metric> = {}): Metric {
 }
 function overview(values: Partial<Overview> = {}): Overview {
   return { latest: metric({ status: 'green', nodes: 1 }), nodes: [metric({ kind: 'node', node_id: 'n1', node_name: 'node1',
-    allocation_primaries: 3, cpu_percent: 0, heap_percent: 0, disk_total_bytes: 1000, disk_available_bytes: 1000 })],
+    allocation_primaries: 3, allocation_index_primaries: [{ index_name: 'logs', index_uuid: 'logs-uuid', primaries: 3 }],
+    cpu_percent: 0, heap_percent: 0, disk_total_bytes: 1000, disk_available_bytes: 1000 })],
     indices: [], pipelines: [], logstashNodes: [], allocationNode: null, series: [], intervalMs: 10000, serverTime: now, ...values };
 }
 const ids = (data: Overview, section: 'opensearch' | 'logstash' = 'opensearch') => evaluateAlerts(data, section).alerts.map(a => a.id);
@@ -18,14 +20,14 @@ const ids = (data: Overview, section: 'opensearch' | 'logstash' = 'opensearch') 
 test('primary rule is strictly greater than three and links to node details', () => {
   const data = overview();
   assert.equal(ids(data).length, 0);
-  data.nodes[0].allocation_primaries = 4;
+  data.nodes[0].allocation_index_primaries![0].primaries = 4;
   const alert = evaluateAlerts(data, 'opensearch').alerts[0];
-  assert.equal(alert.id, 'primaries:n1');
+  assert.equal(alert.id, 'primaries:logs-uuid:n1');
   assert.equal(alert.target?.entity, 'n1');
   assert.equal(alert.target?.view, 'nodes');
-  data.nodes[0].allocation_primaries = undefined;
+  data.nodes[0].allocation_index_primaries = undefined;
   assert.equal(ids(data).length, 0);
-  assert.ok(evaluateAlerts(data, 'opensearch').notes.some(n => n.includes('Primary-Shard-Anzahl unbekannt')));
+  assert.ok(evaluateAlerts(data, 'opensearch').notes.some(n => n.includes('Primary-Zähler je Index fehlen')));
 });
 test('resource thresholds use unrounded values and promote warning to critical', () => {
   const data = overview();
@@ -77,10 +79,58 @@ test('anomalies ignore incomplete last bucket and require eight prior intervals'
   assert.deepEqual(ids(data), ['anomaly:index_rate', 'anomaly:search_rate']);
   assert.deepEqual(ids(data, 'logstash'), ['anomaly:events_out_rate']);
 });
-test('multiple pipelines on one node retain independent alert identities', () => {
+test('multiple pipelines on one node remain visible in a grouped warning without duplicate nodes', () => {
   const data = overview({ pipelines: ['one', 'two'].map(id => metric({ kind: 'pipeline', node_id: 'same-node',
     pipeline_source: 'logstash', pipeline_uid: id, worker_utilization: 95 })) });
-  assert.deepEqual(ids(data, 'logstash'), ['workers:one', 'workers:two']);
+  const report = evaluateAlerts(data, 'logstash');
+  assert.equal(report.alerts.length, 1);
+  assert.equal(report.alerts[0].nodes.length, 1);
+});
+
+test('total primaries do not trigger the per-index rule and replica totals are ignored', () => {
+  const data = overview();
+  Object.assign(data.nodes[0], { allocation_primaries: 100, allocation_replicas: 100,
+    allocation_index_primaries: [
+      { index_name: 'a', index_uuid: 'a', primaries: 3 },
+      { index_name: 'b', index_uuid: 'b', primaries: 2 },
+    ] });
+  assert.equal(ids(data).length, 0);
+  data.nodes[0].allocation_index_primaries![1].primaries = 4;
+  assert.deepEqual(ids(data), ['primaries:b:n1']);
+});
+test('same index on multiple affected nodes groups by UUID and lists every node', () => {
+  const data = overview();
+  data.nodes[0].allocation_index_primaries![0].primaries = 4;
+  data.nodes.push({ ...data.nodes[0], node_id: 'n2', node_name: 'node2' });
+  const report = evaluateAlerts(data, 'opensearch');
+  assert.equal(report.alerts.length, 1);
+  assert.deepEqual(report.alerts[0].nodes.map(n => n.name), ['node1', 'node2']);
+  assert.ok(report.alerts[0].observation.includes('node1') && report.alerts[0].observation.includes('node2'));
+});
+test('configured thresholds drive resource, shard, stale and anomaly evaluation', () => {
+  const config = structuredClone(DEFAULT_ALERT_CONFIG);
+  config.cpu.warning = 10; config.cpu.critical = 20;
+  config.primary_shards_per_index = 2;
+  config.stale_after_ms = 60000; config.stale_interval_multiplier = 6;
+  const data = overview({ alertConfig: config, serverTime: now + 40000 });
+  data.nodes[0].cpu_percent = 20;
+  assert.equal(evaluateAlerts(data, 'opensearch').alerts.find(a => a.id === 'cpu:n1')?.severity, 'critical');
+  assert.ok(ids(data).includes('primaries:logs-uuid:n1'));
+  config.anomaly.min_buckets = 2; config.anomaly.baseline_buckets = 2;
+  config.anomaly.spike_ratio = 2; config.anomaly.min_rate = 1;
+  data.serverTime = now; data.nodes[0].cpu_percent = 0;
+  data.series = history([2, 2, 5, 0]);
+  assert.ok(ids(data).includes('anomaly:index_rate'));
+  config.anomaly.spike_ratio = 10;
+  assert.ok(!ids(data).includes('anomaly:index_rate'));
+});
+test('cross-field config validation rejects reversed limits and impossible baselines', () => {
+  const config = structuredClone(DEFAULT_ALERT_CONFIG);
+  assert.equal(validateAlertConfig(config), undefined);
+  config.heap.critical = 80;
+  assert.match(validateAlertConfig(config)!, /heap/);
+  config.heap.critical = 95; config.anomaly.min_buckets = 31;
+  assert.match(validateAlertConfig(config)!, /min_buckets/);
 });
 test('anomaly detector handles zero throughput, variable baselines and gaps', () => {
   assert.ok(ids(overview({ series: history([...Array(8).fill(100), 0, 9999]) })).includes('anomaly:index_rate'));
