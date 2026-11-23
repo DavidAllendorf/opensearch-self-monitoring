@@ -8,9 +8,13 @@ nativen OpenSearch-/Dashboards-Paar. Danach ein Git-Tag setzen und dieselben
 geprueften ZIPs ausliefern. Die mitgelieferte GitHub-Actions-Datei baut beide
 Artefakte; ein automatisches Deployment auf Benutzer-Server findet nicht statt.
 
-Beide Plugins stehen auf 0.8.0, die Plattform-Kompatibilitaet ist exakt 3.6.0.
-Die neue Primary-Regel erfordert die Index-Zaehler des Collectors 0.8.0; fuer
-dieses Update beide ZIPs ersetzen und Collector sowie Dashboards neu starten.
+Das Dashboard-Plugin steht auf 0.9.0, der unveraenderte Java-Collector auf 0.8.0;
+die Plattform-Kompatibilitaet ist exakt 3.6.0. Fuer die neue Topologie nur das
+Dashboard-ZIP auf allen Dashboards-Instanzen ersetzen und diese neu starten.
+OpenSearch muss dafuer nicht neu gestartet werden. Siehe [Topologie](TOPOLOGY.md).
+Bei einem Upgrade von Collector-Versionen vor 0.8.0 erfordert die Primary-Regel
+weiterhin dessen Index-Zaehler; dafuer auch das Java-ZIP ersetzen und den Collector
+neu starten.
 Spaetere reine Schwellen-Aenderungen in opensearch_dashboards.yml erfordern nur
 Dashboards-Neustarts. Dieselbe Konfiguration auf allen Dashboards-Instanzen ausrollen.
 Der Installer meldet eine ausgehende Socket-Berechtigung fuer frei konfigurierbare

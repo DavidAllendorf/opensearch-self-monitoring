@@ -1,4 +1,5 @@
 import type { AlertConfig } from './alert_config';
+import type { TopologyConfig } from './topology_config';
 export type MetricKind = 'cluster' | 'node' | 'index' | 'pipeline' | 'logstash';
 
 export interface ProcessorMetric {
@@ -119,6 +120,7 @@ export const HISTORY_FIELDS = [
 export type SeriesPoint = { timestamp: number } & Record<typeof HISTORY_FIELDS[number], number | null>;
 
 export interface Overview {
+  topologyConfig?: TopologyConfig;
   alertConfig?: AlertConfig;
   latest: Metric | null;
   nodes: Metric[];

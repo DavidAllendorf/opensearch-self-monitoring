@@ -8,6 +8,27 @@
 .smSectionTabs { margin-top: 10px; }
 .smTabCount { margin-left: 8px; font-size: 11px; opacity: .65; }
 .smVersion { margin-left: auto; opacity: .65; }
+.smTopologyToolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.smTopologyLayout { display: flex; align-items: flex-start; gap: 12px; }
+.smTopologyCanvas { flex: 1; min-width: 0; }
+.smTopologyScroll { overflow: auto; max-height: 680px; }
+.smTopologyLane { fill: currentColor; font-size: 13px; font-weight: 600; }
+.smTopologyEdge { fill: none; stroke: currentColor; stroke-width: 1.5; opacity: .3; }
+.smTopologyConfigured { stroke-dasharray: 6 4; opacity: .65; }
+.smTopologyHighlight { stroke: #0077c2; stroke-width: 3; opacity: 1; }
+.smTopologyNode { width: 100%; height: 100%; padding: 10px; display: flex; flex-direction: column; gap: 7px; text-align: left; border: 1px solid #98a2b3; border-left-width: 5px; border-radius: 6px; background: inherit; color: inherit; font-size: 12px; cursor: pointer; }
+.smTopologyNode strong { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.smTopologyNode span { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.smTopologyNode[data-health="normal"] { border-left-color: #017d73; }
+.smTopologyNode[data-health="warning"] { border-left-color: #b77900; }
+.smTopologyNode[data-health="critical"] { border-left-color: #bd271e; }
+.smTopologyNode:hover, .smTopologySelected { outline: 2px solid #0077c2; outline-offset: -2px; }
+.smTopologyNode:focus-visible { outline: 3px solid #0077c2; outline-offset: -3px; }
+.smTopologyDetails { width: 320px; flex: 0 0 320px; overflow-wrap: anywhere; }
+.smTopologyDetails dl { display: grid; gap: 4px; font-size: 12px; margin: 16px 0; }
+.smTopologyDetails dt { font-weight: 600; margin-top: 6px; }
+.smTopologyDetails ul { max-height: 240px; overflow: auto; }
+@media (max-width: 1000px) { .smTopologyLayout { flex-direction: column; } .smTopologyCanvas, .smTopologyDetails { width: 100%; flex-basis: auto; } }
 .smSectionHeading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .smMuted, .smFootnote { font-size: 12px; opacity: .65; margin-top: 8px; }
 .smTableDescription { margin-bottom: 12px; opacity: .75; }

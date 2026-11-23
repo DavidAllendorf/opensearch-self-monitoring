@@ -1,7 +1,7 @@
 {
   "id": "stackMonitoring",
   "configPath": "stack_monitoring",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "opensearchDashboardsVersion": "3.6.0",
   "server": true,
   "ui": true,

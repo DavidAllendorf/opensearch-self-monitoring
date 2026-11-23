@@ -15,8 +15,9 @@ import { logstashTotal } from '../logstash_totals';
 import { ShardActivity } from './shard_activity';
 import { AlertsPage } from './alerts_page';
 import { DEFAULT_ALERT_CONFIG } from '../../common/alert_config';
+import { TopologyPage } from './topology_page';
 
-const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines', alerts: 'Alerts' };
+const VIEW_NAMES: Record<View, string> = { overview: 'Übersicht', nodes: 'Nodes', indices: 'Indizes', pipelines: 'Pipelines', alerts: 'Alerts', topology: 'Topologie' };
 
 export function MonitoringApp({ http }: { http: HttpStart }) {
   const [nav, setNav] = useState<Navigation>(() => parseNavigation(window.location.hash));
@@ -28,6 +29,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
   const [loadedKey, setLoadedKey] = useState('');
   const kind = historyKind(nav);
   const alertsView = nav.view === 'alerts';
+  const topologyView = nav.view === 'topology';
   const requestKey = [kind, nav.entity || '', minutes, alertsView].join(':');
   const logstash = nav.section === 'logstash';
 
@@ -85,7 +87,7 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
       <div className="smBreadcrumb">
         <button onClick={() => navigate({ section: 'opensearch', view: 'overview' })}>Stack Monitoring</button>
         <span>/</span><span>{latest?.cluster_name || 'Lokaler Cluster'}</span>
-        <span>/</span><span>{logstash ? 'Logstash' : 'OpenSearch'}</span>
+        <span>/</span><span>{topologyView ? 'Topologie' : logstash ? 'Logstash' : 'OpenSearch'}</span>
       </div>
       <EuiFlexGroup alignItems="center" justifyContent="spaceBetween" wrap>
         <EuiFlexItem grow={false}>
@@ -104,8 +106,9 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
         </EuiFlexItem>
       </EuiFlexGroup>
       <EuiTabs className="smProductTabs">
-        <EuiTab isSelected={!logstash} onClick={() => navigate({ section: 'opensearch', view: 'overview' })}>OpenSearch</EuiTab>
-        <EuiTab isSelected={logstash} onClick={() => navigate({ section: 'logstash', view: 'overview' })}>Logstash</EuiTab>
+        <EuiTab isSelected={!logstash && !topologyView} onClick={() => navigate({ section: 'opensearch', view: 'overview' })}>OpenSearch</EuiTab>
+        <EuiTab isSelected={logstash && !topologyView} onClick={() => navigate({ section: 'logstash', view: 'overview' })}>Logstash</EuiTab>
+        <EuiTab isSelected={topologyView} onClick={() => navigate({ section: 'opensearch', view: 'topology' })}>Topologie</EuiTab>
       </EuiTabs>
     </header>
     <div className="smContent">
@@ -114,19 +117,19 @@ export function MonitoringApp({ http }: { http: HttpStart }) {
       {data && !latest && <EuiCallOut title="Die erste Messung steht noch aus"><p>Das Server-Plugin muss genau einmal auf dem vorgesehenen Collector-Node des Clusters installiert sein. Die Erfassung startet unabhängig von dessen Node-Rolle automatisch.</p></EuiCallOut>}
       {latest && <>
         <div className="smStatusLine">
-          <strong>{logstash ? 'Logstash' : 'OpenSearch'}</strong>
+          <strong>{topologyView ? 'Stack-Topologie' : logstash ? 'Logstash' : 'OpenSearch'}</strong>
           <EuiBadge color={stale || status === 'unavailable' ? 'warning' : status === 'green' ? 'success' : status === 'yellow' ? 'warning' : 'danger'}>{stale ? 'VERALTET' : (status || 'UNBEKANNT').toUpperCase()}</EuiBadge>
           <span>Stand {new Date(latest.timestamp).toLocaleTimeString('de-DE')} · {number(data!.intervalMs / 1000)} s{paused ? ' · Ansicht pausiert' : ''}</span>
           <span className="smVersion">{logstash ? nodes[0]?.version : data!.nodes[0]?.version}</span>
         </div>
         {stale && <><EuiSpacer size="m" /><EuiCallOut title="Die Erfassung liefert keine aktuellen Daten" color="warning"><p>Letzte Messung: {new Date(latest.timestamp).toLocaleString('de-DE')}. Der Zustand ist historisch.</p></EuiCallOut></>}
-        <EuiTabs className="smSectionTabs">{activeTabs.map(view =>
+        {!topologyView && <EuiTabs className="smSectionTabs">{activeTabs.map(view =>
           <EuiTab key={view} isSelected={nav.view === view} onClick={() => navigate({ section: nav.section, view })}>
             {VIEW_NAMES[view]}{count(view) != null && <span className="smTabCount">{count(view)}</span>}
-          </EuiTab>)}</EuiTabs>
+          </EuiTab>)}</EuiTabs>}
         <EuiSpacer size="m" />
         {logstash && !!latest.logstash_failed_targets && <><EuiCallOut title="Logstash-Ziele teilweise nicht erreichbar" color="warning"><p>{latest.logstash_failed_targets} von {latest.logstash_targets} konfigurierten APIs liefern keine verwertbaren Daten. Erreichbare Instanzen werden weiterhin angezeigt.</p></EuiCallOut><EuiSpacer size="m" /></>}
-        {nav.view === 'alerts' ? loading ? <EuiLoadingSpinner size="l" /> : error
+        {topologyView ? loading ? <EuiLoadingSpinner size="l" /> : <TopologyPage data={data!} navigate={navigate} /> : nav.view === 'alerts' ? loading ? <EuiLoadingSpinner size="l" /> : error
           ? <EuiCallOut title="Alert-Auswertung pausiert" color="warning"><p>Ohne aktuelle API-Antwort kann der Zustand nicht bewertet werden. Bitte erneut aktualisieren.</p></EuiCallOut>
           : <AlertsPage data={data!} section={nav.section} navigate={navigate} /> : logstash && !nodes.length ? <EuiCallOut title="Keine Logstash-Messwerte verfügbar" iconType="iInCircle">
           <p>Der Collector liest die in stack_monitoring.logstash.urls konfigurierten HTTP(S)-APIs. Ohne Konfiguration wird 127.0.0.1:9600 am Collector abgefragt. Für entfernte Server müssen deren Basis-URLs eingetragen werden. Zusätzliche API-Authentifizierung wird noch nicht unterstützt.</p>

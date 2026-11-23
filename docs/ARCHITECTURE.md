@@ -7,7 +7,7 @@ flowchart LR
   C --> D[Bulk: versteckte Tagesindizes]
   E[Angemeldeter Dashboards-Nutzer] --> F[Plugin-Route: asCurrentUser]
   F --> D
-  F --> G[React: Verlauf und Tabellen]
+  F --> G[React: Verlauf, Tabellen und Topologie]
 ```
 
 ## Ablauf

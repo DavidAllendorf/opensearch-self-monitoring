@@ -1,6 +1,7 @@
 import { schema } from '@osd/config-schema';
 import { DEFAULT_ALERT_CONFIG as defaults, validateAlertConfig } from '../common/alert_config';
 import type { AlertConfig } from '../common/alert_config';
+import type { TopologyConfig } from '../common/topology_config';
 
 function pair(value: { warning: number; critical: number }, max = Number.MAX_SAFE_INTEGER) {
   return schema.object({ warning: schema.number({ defaultValue: value.warning, min: 0, max }),
@@ -29,5 +30,11 @@ export const configSchema = schema.object({ alerts: schema.object({
     min_rate: schema.number({ defaultValue: defaults.anomaly.min_rate, min: .001 }),
     drop_ratio: schema.number({ defaultValue: defaults.anomaly.drop_ratio, min: 0, max: .99 }),
   }),
-}, { validate: value => validateAlertConfig(value as AlertConfig) }) });
-export interface MonitoringConfig { alerts: AlertConfig; }
+}, { validate: value => validateAlertConfig(value as AlertConfig) }),
+  topology: schema.object({ links: schema.arrayOf(schema.object({
+    logstash_node_id: schema.string({ minLength: 1, maxLength: 1024 }),
+    pipeline_id: schema.string({ minLength: 1, maxLength: 1024 }),
+    target_cluster_uuid: schema.string({ minLength: 1, maxLength: 1024 }),
+  }), { defaultValue: [], maxSize: 500 }) }),
+});
+export interface MonitoringConfig { alerts: AlertConfig; topology: TopologyConfig; }

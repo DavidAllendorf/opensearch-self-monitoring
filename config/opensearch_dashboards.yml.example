@@ -1,6 +1,12 @@
 # Merge into opensearch_dashboards.yml on EVERY Dashboards instance.
 # Optional settings with built-in defaults. Restart Dashboards after changes.
 stack_monitoring:
+  topology:
+    links: [] # Optional declared Logstash output targets; never inferred from throughput.
+    # links:
+    #   - logstash_node_id: "LOGSTASH-NODE-UUID"
+    #     pipeline_id: "main"
+    #     target_cluster_uuid: "OPENSEARCH-CLUSTER-UUID"
   alerts:
     cpu: { warning: 85, critical: 95 }
     heap: { warning: 85, critical: 95 }

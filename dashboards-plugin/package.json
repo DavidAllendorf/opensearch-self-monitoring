@@ -1,6 +1,6 @@
 {
   "name": "stack-monitoring-dashboards",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Self-monitoring for the connected OpenSearch cluster",
   "license": "Apache-2.0",

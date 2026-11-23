@@ -14,7 +14,7 @@ trap 'rm -rf -- "$build_source"' EXIT
 cp -R "$repo_root/dashboards-plugin/." "$build_source/"
 cd "$build_source"
 "$osd_root/node_modules/.bin/tsc" --noEmit -p tsconfig.json
-yarn --cwd "$osd_root" test:jest --roots "$build_source/server" --runInBand --watch=false
+yarn --cwd "$osd_root" test:jest --roots "$build_source/server" "$build_source/public" --runInBand --watch=false
 yarn build
 mkdir -p "$repo_root/artifacts"
 cp build/stackMonitoring-3.6.0.zip "$repo_root/artifacts/"

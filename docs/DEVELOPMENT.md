@@ -59,8 +59,11 @@ bash scripts/build-dashboards.sh /absoluter/pfad/OpenSearch-Dashboards
 ```
 
 Das Skript verwendet einen eigenen temporaeren Plugin-Ordner.
-Vor dem Bundle-Build prueft es TypeScript und die echte Dashboard-Konfigurations-
-Schema-Laufzeit mit Jest; dieselben Checks laufen damit in GitHub Actions.
+Vor dem Bundle-Build prueft es TypeScript, die echte Dashboard-Konfigurations-
+Schema-Laufzeit und die Topologie-Bedienung mit Jest; dieselben Checks laufen
+damit in GitHub Actions. Die reine Graph-Ableitung steht in `public/topology.ts`,
+die Darstellung in `public/components/topology_page.tsx`; beide verwenden nur
+vorhandene React-/OUI-Bibliotheken. Details: [Topologie](TOPOLOGY.md).
 Fertiges ZIP: `artifacts/stackMonitoring-3.6.0.zip`. Es enthaelt vorkompilierte Browser-Bundles
 und transpilierten Servercode. Ein Server braucht zum Installieren keinen Build.
 

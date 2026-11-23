@@ -1,16 +1,17 @@
 import type { Metric, MetricKind } from '../common/types';
 
 export type Section = 'opensearch' | 'logstash';
-export type View = 'overview' | 'nodes' | 'indices' | 'pipelines' | 'alerts';
+export type View = 'overview' | 'nodes' | 'indices' | 'pipelines' | 'alerts' | 'topology';
 export interface Navigation { section: Section; view: View; entity?: string; label?: string; }
 
 export function parseNavigation(hash: string): Navigation {
   const [path, query] = hash.replace(/^#\/?/, '').split('?');
   const [section, view] = path.split('/');
   const validSection = section === 'logstash' ? 'logstash' : 'opensearch';
-  const validView = ['overview', 'nodes', 'pipelines', 'alerts', ...(validSection === 'opensearch' ? ['indices'] : [])].includes(view) ? view as View : 'overview';
+  const validView = ['overview', 'nodes', 'pipelines', 'alerts', 'topology', ...(validSection === 'opensearch' ? ['indices'] : [])].includes(view) ? view as View : 'overview';
   const params = new URLSearchParams(query);
-  return { section: validSection, view: validView, entity: validView === 'alerts' ? undefined : params.get('entity') || undefined, label: validView === 'alerts' ? undefined : params.get('label') || undefined };
+  const globalView = validView === 'alerts' || validView === 'topology';
+  return { section: validSection, view: validView, entity: globalView ? undefined : params.get('entity') || undefined, label: globalView ? undefined : params.get('label') || undefined };
 }
 
 export function navigationHash(value: Navigation): string {
@@ -21,6 +22,7 @@ export function navigationHash(value: Navigation): string {
 }
 
 export function historyKind(nav: Navigation): MetricKind {
+  if (nav.view === 'topology') return 'cluster';
   if (nav.entity) return nav.view === 'pipelines' ? 'pipeline' : nav.view === 'indices' ? 'index' : nav.section === 'logstash' ? 'logstash' : 'node';
   return nav.section === 'logstash' ? 'logstash' : 'cluster';
 }

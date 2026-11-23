@@ -17,7 +17,9 @@ interface SearchResult {
 export class StackMonitoringServerPlugin implements Plugin {
   constructor(private readonly context: PluginInitializerContext) {}
   public async setup(core: CoreSetup) {
-    const alertConfig = (await this.context.config.create<MonitoringConfig>().pipe(first()).toPromise()).alerts;
+    const config = await this.context.config.create<MonitoringConfig>().pipe(first()).toPromise();
+    const alertConfig = config.alerts;
+    const topologyConfig = config.topology;
     core.http.createRouter().get({
       path: '/api/stack_monitoring/overview',
       validate: { query: schema.object({
@@ -39,7 +41,7 @@ export class StackMonitoringServerPlugin implements Plugin {
       try {
         const latestResult = await search({ size: 1, sort: [{ timestamp: 'desc' }], query: { term: { kind: 'cluster' } } });
         const latest = latestResult.hits.hits[0]?._source as Metric | undefined;
-        if (!latest) return response.ok({ body: { latest: null, nodes: [], indices: [], pipelines: [], logstashNodes: [], allocationNode: null, series: [], intervalMs: 10000, serverTime: now, alertConfig } });
+        if (!latest) return response.ok({ body: { latest: null, nodes: [], indices: [], pipelines: [], logstashNodes: [], allocationNode: null, series: [], intervalMs: 10000, serverTime: now, alertConfig, topologyConfig } });
         const sampleQuery = (sampleKind: MetricKind) => ({
           _source: { excludes: ['allocations', ...(request.query.alerts ? [] : ['allocation_index_primaries'])] },
           size: sampleKind === 'index' || sampleKind === 'pipeline' ? 10000 : 1000,
@@ -72,7 +74,7 @@ export class StackMonitoringServerPlugin implements Plugin {
           indices: indices.hits.hits.map(hit => hit._source as Metric), series,
           pipelines: pipelines.hits.hits.map(hit => hit._source), logstashNodes: logstashNodes.hits.hits.map(hit => hit._source),
           allocationNode: allocation?.hits.hits[0]?._source || null,
-          intervalMs: latest.interval_ms || 10000, serverTime: now, alertConfig,
+          intervalMs: latest.interval_ms || 10000, serverTime: now, alertConfig, topologyConfig,
         };
         return response.ok({ body: overview });
       } catch (error) {

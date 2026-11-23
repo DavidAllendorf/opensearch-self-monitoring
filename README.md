@@ -1,11 +1,16 @@
 # OpenSearch Self Monitoring
 
 Zwei native Plugins fuer **OpenSearch 3.6.0** und **OpenSearch Dashboards 3.6.0**.
+Aktuell: Dashboard-Plugin **0.9.0**, Java-Collector unveraendert **0.8.0**.
 Der Cluster erfasst seine eigenen Metriken und speichert sie selbst. Es werden
 keine Container, externen Collector-Dienste oder Zugangsdaten fuer die Erfassung
 benoetigt. Eigenstaendige Implementierung unter Apache-2.0.
 
 ## Funktionen
+
+- Gemeinsamer Topologie-Tab fuer OpenSearch und Logstash: automatische
+  Zugehoerigkeiten, Ressourcenfarben, Suche, Zoom und verlinkte Details.
+  Optionale deklarierte Logstash-Datenfluesse; siehe [Topologie](docs/TOPOLOGY.md).
 
 - Clusterzustand, Knoten, Indizes, Shards, Dokumente und primaerer Speicher.
 - Indexierungs- und Suchraten sowie mittlere Zeit je Shard-Operation.

@@ -1,7 +1,26 @@
 # Verifikation fuer OpenSearch 3.6.0
 
-Beide Plugins stehen auf 0.8.0 fuer OpenSearch/Dashboards 3.6.0.
+Dashboard-Plugin 0.9.0 und Java-Collector 0.8.0 fuer OpenSearch/Dashboards 3.6.0.
 Historische Ergebnisse stehen in VERIFICATION-3.9.md.
+
+## 0.9.0: Topologie
+
+- 34 TypeScript-Quelltests erfolgreich, davon sechs Topologie-Tests: nur
+  belegte Zugehoerigkeiten, explizite Ziel-Zuordnungen, gleiche Pipeline-Namen
+  auf verschiedenen Servern, Deduplizierung, falsche Cluster-/Sample-IDs,
+  fehlende Eltern, veraltete/fehlende Werte, konfigurierbare Schwellen,
+  Such-Nachbarschaften, begrenztes Rendering und Navigation.
+- TypeScript-Pruefung gegen den offiziellen Dashboards-3.6.0-Quellbaum bestanden.
+- Vier native Jest-Tests bestanden: drei Konfigurationsschema-Tests und ein
+  React-/OUI-Bedienungstest fuer Detailbereich, Node-Link, Zoom und Suche.
+- Offizieller Dashboard-Bundle-/ZIP-Build fuer 3.6.0 bestanden. Darstellung
+  im Onboard-Browser mit synthetischen Daten (zwei Logstash-Server, drei
+  OpenSearch-Nodes, Pipelines und deklarierte Datenfluesse) visuell geprueft.
+- Java-Collector, Mapping und Messwert-Erfassung unveraendert; keine neuen
+  Laufzeitabhaengigkeiten. Die Karte verwendet das aktuelle Sample, keine
+  rekonstruierten Netzwerkverbindungen oder historischen Datenflussmessungen.
+- Das Update wurde gebaut und geprueft, aber nicht in den laufenden
+  Dashboards-Dienst installiert. Die laufenden Dienste wurden nicht neu gestartet.
 
 ## 0.8.0
 
